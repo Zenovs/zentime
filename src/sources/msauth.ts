@@ -102,6 +102,19 @@ export function openIdConfigUrl(tenantId: string): string {
   return `${authorityUrl(tenantId)}/.well-known/openid-configuration`;
 }
 
+/** Liest die Tenant-GUID aus `token_endpoint` bzw. `issuer` der OpenID-Konfiguration */
+export function tenantIdFromOpenIdConfig(json: unknown): string | null {
+  if (!json || typeof json !== 'object') return null;
+  const o = json as Record<string, unknown>;
+  for (const key of ['token_endpoint', 'issuer', 'authorization_endpoint']) {
+    const v = o[key];
+    if (typeof v !== 'string') continue;
+    const m = /microsoftonline\.com\/([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})\//i.exec(v);
+    if (m?.[1]) return m[1].toLowerCase();
+  }
+  return null;
+}
+
 export function authorizationCodeBody(p: MsAppConfig & { code: string; redirectUri: string; verifier: string }): URLSearchParams {
   return new URLSearchParams({
     client_id: p.clientId.trim(),

@@ -10,8 +10,10 @@ import {
   parseRedirect,
   refreshTokenBody,
   requiresInteraction,
+  tenantIdFromOpenIdConfig,
   tokenUrl,
 } from '../src/sources/msauth';
+import { domainOf } from '../src/platform/tenant';
 
 describe('PKCE', () => {
   it('S256-Challenge entspricht dem Beispiel aus RFC 7636', async () => {
@@ -96,5 +98,20 @@ describe('Token-Anfragen', () => {
     expect(accountFromIdToken(`h.${payload}.s`)).toBe('zeno@beispiel.ch');
     expect(accountFromIdToken(undefined)).toBeNull();
     expect(accountFromIdToken('kaputt')).toBeNull();
+  });
+});
+
+describe('Tenant aus E-Mail', () => {
+  it('liest die Tenant-GUID aus der OpenID-Konfiguration', () => {
+    const json = { token_endpoint: 'https://login.microsoftonline.com/7e3f2917-81a3-483e-969d-e904433ab8af/oauth2/v2.0/token' };
+    expect(tenantIdFromOpenIdConfig(json)).toBe('7e3f2917-81a3-483e-969d-e904433ab8af');
+    expect(tenantIdFromOpenIdConfig({ error: 'invalid_tenant' })).toBeNull();
+    expect(tenantIdFromOpenIdConfig(null)).toBeNull();
+  });
+
+  it('domainOf akzeptiert E-Mail oder Domäne', () => {
+    expect(domainOf('zeno@Firma.CH')).toBe('firma.ch');
+    expect(domainOf('firma.onmicrosoft.com')).toBe('firma.onmicrosoft.com');
+    expect(domainOf('kein wert')).toBeNull();
   });
 });

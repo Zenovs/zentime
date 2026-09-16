@@ -6,6 +6,7 @@ import { newSourceId, secretKeys, type GraphSourceConfig, type IcsSourceConfig }
 import { describeError, log } from '../platform/log';
 import { isTauri } from '../platform/env';
 import { secrets } from '../platform/secrets';
+import { resolveTenantId } from '../platform/tenant';
 import { Button, Field, IconButton, Segmented, ViewHeader } from './ui';
 
 type Kind = 'graph' | 'ics';
@@ -37,9 +38,12 @@ export function AddSourceView({ initialKind }: { initialKind?: Kind | undefined 
   const [kind, setKind] = useState<Kind>(initialKind ?? 'graph');
   const [name, setName] = useState('');
   const [clientId, setClientId] = useState('');
+  const [email, setEmail] = useState('');
   const [tenantId, setTenantId] = useState('');
+  const [advanced, setAdvanced] = useState(false);
   const [url, setUrl] = useState('');
   const [busy, setBusy] = useState(false);
+  const [status, setStatus] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const back = () => setView(sources.length > 0 ? { name: 'settings' } : { name: 'today' });
@@ -47,27 +51,33 @@ export function AddSourceView({ initialKind }: { initialKind?: Kind | undefined 
   async function addGraph() {
     setError(null);
     const client = extractGuid(clientId);
-    const tenant = normalizeTenant(tenantId);
     if (!client) {
       setError('Client-ID: keine GUID gefunden. Sie steht in Entra ID unter «Anwendungs-ID (Client)».');
       return;
     }
-    if (!tenant) {
-      setError('Tenant-ID: GUID oder Domäne eingeben, z. B. firma.onmicrosoft.com.');
-      return;
-    }
     setBusy(true);
     const id = newSourceId();
-    const draft = { id, clientId: client, tenantId: tenant };
+    let draft: { id: string; clientId: string; tenantId: string } | null = null;
     try {
-      const { account, calendars } = await engine.loginGraph(draft);
+      let tenant: string | null;
+      if (advanced && tenantId.trim()) {
+        tenant = normalizeTenant(tenantId);
+        if (!tenant) throw new Error('Tenant-ID: GUID oder Domäne eingeben, z. B. firma.onmicrosoft.com.');
+      } else {
+        setStatus('Verzeichnis wird ermittelt …');
+        tenant = await resolveTenantId(email);
+      }
+      draft = { id, clientId: client, tenantId: tenant };
+      setStatus('Browser geöffnet, bitte dort anmelden …');
+      const hint = email.includes('@') ? email.trim() : undefined;
+      const { account, calendars } = await engine.loginGraph(draft, hint);
       const cfg: GraphSourceConfig = {
         id,
         kind: 'graph',
         name: name.trim() || 'Arbeit',
         clientId: draft.clientId,
         tenantId: draft.tenantId,
-        account,
+        account: account ?? hint ?? null,
         calendars: calendars.map((c) => ({ id: c.id, name: c.name, enabled: c.isDefaultCalendar === true || calendars.length === 1 })),
       };
       upsertSource(cfg);
@@ -75,10 +85,11 @@ export function AddSourceView({ initialKind }: { initialKind?: Kind | undefined 
       setView({ name: 'source', id });
     } catch (e) {
       // Kein halb eingerichtetes Konto zurücklassen: Token aus dem Schlüsselbund entfernen
-      await engine.discardGraphDraft(draft).catch(() => undefined);
+      if (draft) await engine.discardGraphDraft(draft).catch(() => undefined);
       log.warn(`Quelle hinzufügen (Microsoft): ${describeError(e)}`);
       setError(describeError(e));
     } finally {
+      setStatus(null);
       setBusy(false);
     }
   }
@@ -129,15 +140,40 @@ export function AddSourceView({ initialKind }: { initialKind?: Kind | undefined 
             void addGraph();
           }}
         >
+          <Field label="Client-ID der App-Registrierung" value={clientId} onChange={setClientId} placeholder="00000000-0000-0000-0000-000000000000" />
+          <Field
+            label="E-Mail-Adresse (Arbeits- oder Schulkonto)"
+            value={email}
+            onChange={setEmail}
+            placeholder="vorname@firma.ch"
+            type="email"
+            inputMode="email"
+          />
           <Field label="Anzeigename" value={name} onChange={setName} placeholder="Arbeit" />
-          <Field label="Client-ID" value={clientId} onChange={setClientId} placeholder="00000000-0000-0000-0000-000000000000" />
-          <Field label="Tenant-ID" value={tenantId} onChange={setTenantId} placeholder="GUID oder firma.onmicrosoft.com" />
+          {advanced ? (
+            <Field
+              label="Tenant-ID (optional)"
+              value={tenantId}
+              onChange={setTenantId}
+              placeholder="GUID oder firma.onmicrosoft.com"
+              hint="Nur nötig, wenn das Verzeichnis nicht aus der E-Mail-Domäne ermittelt werden kann."
+            />
+          ) : (
+            <button type="button" onClick={() => setAdvanced(true)} className="self-start text-[13px] leading-4 text-muted hover:text-fg">
+              Erweitert: Tenant-ID selbst eintragen
+            </button>
+          )}
           <p className="text-[13px] leading-[18px] text-muted">
-            Beide Werte stammen aus der App-Registrierung in Entra ID (docs/setup-microsoft.md). Ein Client-Secret ist nicht nötig;
-            der Login öffnet den Systembrowser.
+            Die Client-ID stammt aus der einmaligen App-Registrierung in Entra ID (docs/setup-microsoft.md, mit Befehl für die Azure
+            Cloud Shell). Das Verzeichnis wird aus der E-Mail-Domäne ermittelt; der Login öffnet den Systembrowser.
           </p>
+          {status ? <p className="text-[13px] leading-[18px] text-muted">{status}</p> : null}
           {error ? <p className="text-[13px] leading-[18px] text-fg">{error}</p> : null}
-          <Button type="submit" busy={busy} disabled={!isTauri}>
+          <Button
+            type="submit"
+            busy={busy}
+            disabled={!isTauri || clientId.trim().length === 0 || (!advanced && email.trim().length === 0)}
+          >
             Mit Microsoft anmelden
           </Button>
           {!isTauri ? <p className="text-[13px] leading-[18px] text-muted">Die Anmeldung ist nur in der Desktop-App möglich.</p> : null}
