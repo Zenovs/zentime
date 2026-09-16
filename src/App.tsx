@@ -131,6 +131,7 @@ export function App() {
   const view = useAppStore((s) => s.view);
   const theme = useResolvedTheme(mode);
   const { compact } = useWindowSize();
+  const viewOpacity = view.name === 'today' ? opacity : 1;
 
   useEffect(() => {
     if (loaded && isTauri) void showWindowWhenReady();
@@ -142,8 +143,8 @@ export function App() {
       data-theme={theme}
       style={{
         ...(demo.frame ? { width: 340, height: 620 } : {}),
-        // Deckkraft nur auf den Hintergrund, Text bleibt voll lesbar
-        backgroundColor: theme === 'dark' ? `rgba(38, 38, 38, ${opacity})` : `rgba(235, 235, 235, ${opacity})`,
+        // Deckkraft nur in der Tagesansicht und nur auf den Hintergrund; Einstellungen und Dialoge bleiben deckend
+        backgroundColor: theme === 'dark' ? `rgba(38, 38, 38, ${viewOpacity})` : `rgba(235, 235, 235, ${viewOpacity})`,
       }}
     >
       <ResizeHandles />
