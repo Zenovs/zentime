@@ -11,7 +11,7 @@ set -euo pipefail
 
 REPO="Zenovs/zentime"
 ASSET="zentime_universal.app.tar.gz"
-URL="https://github.com/${REPO}/releases/latest/download/${ASSET}"
+API="https://api.github.com/repos/${REPO}/releases/latest"
 
 if [[ "$(uname -s)" != "Darwin" ]]; then
   echo "Dieses Skript ist für macOS. Für Linux siehe README." >&2
@@ -28,8 +28,12 @@ fi
 tmp="$(mktemp -d)"
 trap 'rm -rf "$tmp"' EXIT
 
-echo "Lade zentime (neueste Version) …"
-curl -fSL --progress-bar "$URL" -o "$tmp/$ASSET"
+echo "Suche neueste Version …"
+# Zuerst über die API (sofort nach einem Release gültig), sonst über den «latest»-Link
+url="$(curl -fsSL "$API" 2>/dev/null | grep -oE '"browser_download_url": *"[^"]+/'"$ASSET"'"' | head -n 1 | sed -E 's/.*"(https[^"]+)"/\1/')"
+url="${url:-https://github.com/${REPO}/releases/latest/download/${ASSET}}"
+echo "Lade $(basename "$url") …"
+curl -fSL --progress-bar "$url" -o "$tmp/$ASSET"
 tar -xzf "$tmp/$ASSET" -C "$tmp"
 if [[ ! -d "$tmp/zentime.app" ]]; then
   echo "Das Archiv enthält keine zentime.app." >&2
