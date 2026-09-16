@@ -95,6 +95,8 @@ function useShortcutsAndTray() {
       } else if (e.key === 'Escape') {
         s.setView({ name: 'today' });
         s.selectEvent(null);
+        // Auch aus einem entfernten Tag zurück, das Rad ist nicht immer sichtbar
+        s.setDayOffset(0);
       }
     };
     window.addEventListener('keydown', onKey);

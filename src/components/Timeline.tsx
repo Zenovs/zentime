@@ -11,6 +11,10 @@ interface TimelineProps {
   now: number;
   zone: string;
   colorFor: (ev: CalendarEvent) => string;
+  /** «Termine heute», «Termine Freitag» … für die Vorlesehilfe */
+  label: string;
+  /** Nur heute hat eine Vergangenheit, die gedimmt gehört */
+  isToday: boolean;
   selectedId: string | null;
   focusId: string | null;
   hasAllDayRow: boolean;
@@ -27,7 +31,7 @@ function RowIcon({ ev }: { ev: CalendarEvent }) {
 }
 
 /** Ein Termin pro Zeile, Balken proportional zur Dauer (7.3) */
-export function Timeline({ events, now, zone, colorFor, selectedId, focusId, hasAllDayRow, privateMode, onSelect }: TimelineProps) {
+export function Timeline({ events, now, zone, colorFor, label, isToday, selectedId, focusId, hasAllDayRow, privateMode, onSelect }: TimelineProps) {
   const scroller = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -43,7 +47,7 @@ export function Timeline({ events, now, zone, colorFor, selectedId, focusId, has
     <div
       ref={scroller}
       role="list"
-      aria-label="Termine heute"
+      aria-label={label}
       className={cx('-mx-2 mb-6 flex min-h-0 flex-1 flex-col overflow-y-auto px-2 no-scrollbar', hasAllDayRow ? 'mt-3' : 'mt-6')}
     >
       {events.map((ev) => {
@@ -67,8 +71,9 @@ export function Timeline({ events, now, zone, colorFor, selectedId, focusId, has
               // laufende und der ausgewählte Termin werden über die Schrift
               // hervorgehoben.
               'flex w-full flex-none items-center gap-3 px-2 py-2 text-left',
-              status === 'past' && 'opacity-40',
-              status !== 'past' && tentative && 'opacity-60',
+              // An einem vergangenen Tag wäre sonst die ganze Liste gedimmt
+              isToday && status === 'past' && 'opacity-40',
+              !(isToday && status === 'past') && tentative && 'opacity-60',
             )}
           >
             <span className={cx('tnum flex-none text-[13px] leading-4', running || selected ? 'text-fg' : 'text-muted')}>

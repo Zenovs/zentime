@@ -1,4 +1,4 @@
-import { useCallback } from 'react';
+import { useCallback, useEffect } from 'react';
 import { engine } from '../app/engine';
 import { useDayModel, useSyncSummary } from '../app/derived';
 import { updateStatusText } from '../platform/updater';
@@ -34,6 +34,12 @@ export function TodayView({ theme, compact }: TodayViewProps) {
 
 
   const colorFor = useCallback((ev: CalendarEvent) => sourceColor(sourceIndex(settings, ev.sourceId)), [settings]);
+
+  // Im kleinen Fenster fehlt das Tag-Rad; ohne Rückfall bliebe das Widget auf
+  // einem fremden Tag stehen, ohne Weg zurück.
+  useEffect(() => {
+    if (compact && model.dayOffset !== 0) engine.showDay(0);
+  }, [compact, model.dayOffset]);
 
   const noSources = settings.sources.length === 0;
   const selected = model.selected;
@@ -86,6 +92,8 @@ export function TodayView({ theme, compact }: TodayViewProps) {
         now={model.now}
         zone={model.zone}
         colorFor={colorFor}
+        label={`Termine ${dayTitle(model.dayOffset, model.now, model.zone)}`}
+        isToday={model.isToday}
         selectedId={selected?.id ?? null}
         focusId={model.focus?.id ?? null}
         hasAllDayRow={model.day.allDay.length > 0}

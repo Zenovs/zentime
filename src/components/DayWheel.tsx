@@ -77,9 +77,11 @@ export function DayWheel({ now, zone, offset, onChange }: DayWheelProps) {
     settle(e.clientX - g.startX, g.velocity);
   };
 
-  // Ein Tag mehr als sichtbar, damit beim Weiterdrehen nie eine Lücke entsteht
+  // Beim Ziehen verschiebt sich der ganze Streifen, während `offset` noch steht.
+  // Ohne diesen Zuschlag liefe das Rad auf der nachlaufenden Seite leer.
+  const extra = Math.ceil(Math.abs(drag) / cell);
   const days: number[] = [];
-  for (let d = offset - SPAN; d <= offset + SPAN; d += 1) days.push(d);
+  for (let d = offset - SPAN - extra; d <= offset + SPAN + extra; d += 1) days.push(d);
 
   return (
     <div
@@ -88,7 +90,7 @@ export function DayWheel({ now, zone, offset, onChange }: DayWheelProps) {
       role="group"
       aria-label="Tag wählen"
       tabIndex={0}
-      className="wheel-fade relative mt-6 h-12 touch-pan-y overflow-hidden select-none"
+      className="relative mt-6 h-12 touch-pan-y select-none"
       onPointerDown={onPointerDown}
       onPointerMove={onPointerMove}
       onPointerUp={endGesture}
@@ -99,6 +101,7 @@ export function DayWheel({ now, zone, offset, onChange }: DayWheelProps) {
         if (e.key === 'Home') { e.preventDefault(); onChange(0); }
       }}
     >
+      <div className="wheel-fade absolute inset-0 overflow-hidden">
       {/* Raste: die Mulde, in die das Rad einrastet */}
       <div
         aria-hidden
@@ -135,6 +138,7 @@ export function DayWheel({ now, zone, offset, onChange }: DayWheelProps) {
           </button>
         );
       })}
+      </div>
     </div>
   );
 }

@@ -103,8 +103,14 @@ export function computeHero(input: HeroInput): Hero {
  * Hero für einen anderen Tag als heute (Tag-Rad). Ein Countdown wäre dort
  * sinnlos, deshalb zeigt er den Beginn des ersten Termins und wie viele es sind.
  */
-export function computeDayHero(input: { timed: readonly CalendarEvent[]; allDay: readonly CalendarEvent[]; zone: string }): Hero {
-  const { timed, allDay, zone } = input;
+export function computeDayHero(input: {
+  timed: readonly CalendarEvent[];
+  allDay: readonly CalendarEvent[];
+  zone: string;
+  /** Sind die Termine dieses Tages schon abgerufen? */
+  loaded?: boolean;
+}): Hero {
+  const { timed, allDay, zone, loaded = true } = input;
   const first = timed[0];
   if (first) {
     const count = timed.length > 1 ? `${timed.length} Termine · ` : '';
@@ -115,5 +121,6 @@ export function computeDayHero(input: { timed: readonly CalendarEvent[]; allDay:
     const more = allDay.length > 1 ? ` +${allDay.length - 1}` : '';
     return { kind: 'day', big: 'frei', unit: null, muted: '', text: displayTitle(firstAllDay) + more, eventId: firstAllDay.id };
   }
-  return { kind: 'day', big: 'frei', unit: null, muted: '', text: 'Keine Termine', eventId: null };
+  // Ein noch nicht abgerufener Tag ist nicht leer, nur unbekannt
+  return { kind: 'day', big: 'frei', unit: null, muted: '', text: loaded ? 'Keine Termine' : 'Wird geladen …', eventId: null };
 }

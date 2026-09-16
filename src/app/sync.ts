@@ -1,4 +1,4 @@
-import { dayKey, fetchWindow, growRange, rangeCovers } from '../logic/day';
+import { INITIAL_DAY_RANGE, dayKey, fetchWindow, growRange, rangeCovers } from '../logic/day';
 import type { CalendarEvent } from '../model/event';
 import { secretKeys, type GraphSourceConfig, type IcsSourceConfig, type SourceConfig } from '../model/settings';
 import { fetchCalendarView, fetchCalendars, type GraphCalendarRaw } from '../sources/graph';
@@ -58,6 +58,10 @@ export class SyncEngine {
   private currentDay: string;
   private inFlight = new Map<string, Promise<void>>();
   private teardown: Array<() => void> = [];
+  /** Erst nach `start()` darf abgerufen werden; im Demo-Modus nie */
+  private started = false;
+  /** Bündelt die Abrufe, wenn das Rad schnell über mehrere Bereiche dreht */
+  private rangeTimer: ReturnType<typeof setTimeout> | null = null;
 
   constructor(
     private readonly deps: Deps = {
@@ -82,6 +86,7 @@ export class SyncEngine {
   }
 
   async start(): Promise<void> {
+    this.started = true;
     await this.loadCache();
     this.timer = setInterval(() => void this.tick(), TICK_MS);
 
@@ -106,8 +111,11 @@ export class SyncEngine {
   }
 
   stop(): void {
+    this.started = false;
     if (this.timer) clearInterval(this.timer);
     this.timer = null;
+    if (this.rangeTimer) clearTimeout(this.rangeTimer);
+    this.rangeTimer = null;
     for (const fn of this.teardown) fn();
     this.teardown = [];
   }
@@ -122,8 +130,10 @@ export class SyncEngine {
     if (day !== this.currentDay) {
       this.currentDay = day;
       log.info('Tageswechsel');
-      // Das Tag-Rad zeigte bis eben einen Tag, der nun anders heisst
+      // Das Tag-Rad zeigte bis eben einen Tag, der nun anders heisst; der
+      // gewachsene Bereich bezieht sich ebenfalls auf das alte Heute.
       this.store.setDayOffset(0);
+      this.store.setDayRange(INITIAL_DAY_RANGE);
       this.reparseIcsFromRaw();
       await this.refreshAll(true);
       return;
@@ -316,10 +326,17 @@ export class SyncEngine {
     const grown = growRange(range, offset);
     this.store.setDayRange(grown);
     log.info(`Tagesbereich erweitert auf ${grown.from} bis ${grown.to}`);
+    // ICS steht sofort zur Verfügung, der ganze Kalender liegt im Speicher
     this.reparseIcsFromRaw();
-    for (const cfg of this.store.settings.sources) {
-      if (cfg.kind === 'graph') void this.refreshSource(cfg.id, true);
-    }
+    if (!this.started) return;
+    // Beim schnellen Drehen wächst der Bereich mehrfach; ein Abruf genügt
+    if (this.rangeTimer) clearTimeout(this.rangeTimer);
+    this.rangeTimer = setTimeout(() => {
+      this.rangeTimer = null;
+      for (const cfg of this.store.settings.sources) {
+        if (cfg.kind === 'graph') void this.refreshSource(cfg.id, true);
+      }
+    }, 300);
   }
 
   /** Interaktive Anmeldung und Kalenderliste (Einrichtung oder «Neu anmelden») */

@@ -14,6 +14,8 @@ export interface DayModel {
   /** Gewählter Tag im Tag-Rad, 0 = heute */
   dayOffset: DayOffset;
   isToday: boolean;
+  /** Sind für diesen Tag überhaupt schon Termine abgerufen worden? */
+  dayLoaded: boolean;
   /** Termine des gewählten Tages */
   day: DayEvents;
   /** Termine des Folgetags; speist den Ausblick im Hero (F-12) */
@@ -36,6 +38,7 @@ export function useDayModel(): DayModel {
   const runtime = useAppStore((s) => s.runtime);
   const selectedId = useAppStore((s) => s.selectedEventId);
   const dayOffset = useAppStore((s) => s.dayOffset);
+  const dayRange = useAppStore((s) => s.dayRange);
   const zone = systemZone;
 
   return useMemo(() => {
@@ -46,11 +49,12 @@ export function useDayModel(): DayModel {
     const day = eventsForDay(all, dayW, opts);
     const next = eventsForDay(all, nextW, opts);
     const isToday = dayOffset === 0;
+    const dayLoaded = dayOffset >= dayRange.from && dayOffset <= dayRange.to;
 
     // Nur heute kennt «läuft» und «noch»; andere Tage zeigen einen Überblick.
     const hero = isToday
       ? computeHero({ timed: day.timed, allDay: day.allDay, tomorrowTimed: next.timed, now, zone })
-      : computeDayHero({ timed: day.timed, allDay: day.allDay, zone });
+      : computeDayHero({ timed: day.timed, allDay: day.allDay, zone, loaded: dayLoaded });
     const focus = isToday ? focusEvent(day.timed, now) : (day.timed[0] ?? null);
 
     const pool = [...day.timed, ...day.allDay, ...next.timed];
@@ -67,6 +71,7 @@ export function useDayModel(): DayModel {
       zone,
       dayOffset,
       isToday,
+      dayLoaded,
       day,
       next,
       hero,
@@ -76,7 +81,7 @@ export function useDayModel(): DayModel {
       gap,
       hasAny,
     };
-  }, [now, settings, runtime, selectedId, dayOffset, zone]);
+  }, [now, settings, runtime, selectedId, dayOffset, dayRange, zone]);
 }
 
 /** Zusammengefasster Zustand der Quellen für die Kopfzeile */

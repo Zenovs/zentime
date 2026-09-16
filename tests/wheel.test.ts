@@ -128,4 +128,9 @@ describe('Hero für andere Tage', () => {
     expect(hero.text).toBe('Keine Termine');
     expect(hero.eventId).toBeNull();
   });
+
+  it('behauptet nicht «keine Termine», solange der Tag noch nicht abgerufen ist', () => {
+    const hero = computeDayHero({ timed: [], allDay: [], zone: ZONE, loaded: false });
+    expect(hero.text).toBe('Wird geladen …');
+  });
 });
