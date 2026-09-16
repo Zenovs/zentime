@@ -18,8 +18,8 @@
         "title": "zentime",
         "width": 340,
         "height": 620,
-        "minWidth": 300,
-        "minHeight": 480,
+        "minWidth": 260,
+        "minHeight": 180,
         "decorations": false,
         "transparent": true,
         "shadow": true,
@@ -50,8 +50,8 @@
       "icons/icon.ico"
     ],
     "category": "Productivity",
-    "shortDescription": "Kalender-Widget: wann ist heute der nächste Termin?",
-    "longDescription": "zentime zeigt auf einen Blick, wann heute der nächste Termin ist. Es führt Termine aus Microsoft 365 und ICS-Kalendern (Google, Planbar) zusammen und läuft komplett lokal.",
+    "shortDescription": "Kalender-Widget: wann ist heute der n\u00e4chste Termin?",
+    "longDescription": "zentime zeigt auf einen Blick, wann heute der n\u00e4chste Termin ist. Es f\u00fchrt Termine aus Microsoft 365 und ICS-Kalendern (Google, Planbar) zusammen und l\u00e4uft komplett lokal.",
     "macOS": {
       "minimumSystemVersion": "13.0"
     },

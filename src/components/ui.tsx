@@ -164,10 +164,10 @@ export function Dot({ color, size = 8 }: { color: string; size?: number }) {
 /** Kopfzeile einer Unteransicht mit Zurück-Pfeil oder Schliessen */
 export function ViewHeader({ title, left, right }: { title: string; left?: ReactNode; right?: ReactNode }) {
   return (
-    <header data-tauri-drag-region className="flex items-center justify-between gap-3">
+    <header className="flex items-center justify-between gap-3">
       <div className="flex min-w-0 items-center gap-2">
         {left}
-        <h1 data-tauri-drag-region className="truncate text-[20px] leading-6 font-semibold">
+        <h1 className="truncate text-[20px] leading-6 font-semibold">
           {title}
         </h1>
       </div>

@@ -16,7 +16,7 @@ Die Software läuft komplett lokal, braucht keinen eigenen Server und sendet kei
 - Offline-Cache mit Hinweis «Stand 14:05», Tageswechsel um Mitternacht, Neuladen nach Standby
 - Abgesagte Termine ausgeblendet, abgelehnte umschaltbar; private Termine zeigen nur «Privat»
 - Hell/Dunkel folgt dem System, manuell übersteuerbar
-- Rahmenloses, verschiebbares Fenster; Position und Grösse werden gespeichert; «Immer im Vordergrund» umschaltbar
+- Rahmenloses Fenster, überall ziehbar, an Rändern und Ecken skalierbar bis hinunter zum Kompaktmodus (nur Hero); Position und Grösse werden gespeichert; «Immer im Vordergrund» umschaltbar
 - Tray- bzw. Menüleisten-Icon, Autostart, Privatmodus (`Cmd/Ctrl+Shift+P`) für Bildschirmfreigaben
 - Secrets (Refresh-Tokens, ICS-Adressen) nur im Schlüsselbund (macOS Keychain, Linux Secret Service)
 - Auto-Update: beim Start und danach täglich prüft die App das neueste GitHub-Release, lädt signierte Updates und startet neu (abschaltbar in den Einstellungen)
@@ -73,7 +73,8 @@ Alle Secrets bleiben lokal im Schlüsselbund. Client-ID und Tenant-ID stehen in 
 
 | Aktion | Wie |
 |---|---|
-| Fenster verschieben | Kopfzeile ziehen |
+| Fenster verschieben | an einer freien Stelle ziehen (nicht auf Schaltflächen) |
+| Grösse ändern | an Rändern oder Ecken ziehen; ab 260 × 180 px, unter 360 px Höhe nur noch Kopfzeile und Hero (Kompaktmodus) |
 | Termin im Detailraster wählen | Spalte in der Tagesleiste anklicken |
 | Aktualisieren | `Cmd/Ctrl+R` oder Tray-Menü |
 | Einstellungen | Zahnrad, `Cmd/Ctrl+,` oder Tray-Menü |

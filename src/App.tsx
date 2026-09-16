@@ -4,7 +4,9 @@ import { engine } from './app/engine';
 import { loadSettings, persistSettings } from './app/persistence';
 import { useAppStore } from './app/store';
 import { useResolvedTheme } from './app/theme';
+import { useWindowSize } from './app/useWindowSize';
 import { AddSourceView } from './components/AddSourceView';
+import { ResizeHandles } from './components/ResizeHandles';
 import { SettingsView } from './components/SettingsView';
 import { SourceView } from './components/SourceView';
 import { TodayView } from './components/TodayView';
@@ -12,6 +14,7 @@ import { msUntilNextMinute } from './logic/day';
 import { onTrayCommand, setAlwaysOnTop, showWindowWhenReady } from './platform/desktop';
 import { isTauri, systemZone } from './platform/env';
 import { UPDATE_CHECK_INTERVAL_MS } from './platform/updater';
+import { installWindowDrag } from './platform/windowDrag';
 import { runUpdateCheck } from './app/update';
 
 const demo = readDemoParams(typeof location === 'undefined' ? '' : location.search);
@@ -95,6 +98,7 @@ function useShortcutsAndTray() {
       }
     };
     window.addEventListener('keydown', onKey);
+    const uninstallDrag = installWindowDrag();
 
     let unlisten: (() => void) | null = null;
     let cancelled = false;
@@ -110,6 +114,7 @@ function useShortcutsAndTray() {
     return () => {
       cancelled = true;
       window.removeEventListener('keydown', onKey);
+      uninstallDrag();
       unlisten?.();
     };
   }, []);
@@ -124,6 +129,7 @@ export function App() {
   const loaded = useAppStore((s) => s.settingsLoaded);
   const view = useAppStore((s) => s.view);
   const theme = useResolvedTheme(mode);
+  const { compact } = useWindowSize();
 
   useEffect(() => {
     if (loaded && isTauri) void showWindowWhenReady();
@@ -131,12 +137,13 @@ export function App() {
 
   return (
     <div
-      className="flex h-full w-full flex-col overflow-y-auto rounded-3xl bg-bg p-6 text-fg no-scrollbar"
+      className="relative flex h-full w-full flex-col overflow-y-auto rounded-3xl bg-bg p-6 text-fg no-scrollbar"
       data-theme={theme}
       style={demo.frame ? { width: 340, height: 620 } : undefined}
     >
+      <ResizeHandles />
       {!loaded ? null : view.name === 'today' ? (
-        <TodayView theme={theme} />
+        <TodayView theme={theme} compact={compact} />
       ) : view.name === 'settings' ? (
         <SettingsView />
       ) : view.name === 'add-source' ? (

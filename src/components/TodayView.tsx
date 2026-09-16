@@ -15,9 +15,11 @@ import { Timeline } from './Timeline';
 
 interface TodayViewProps {
   theme: ResolvedTheme;
+  /** Nur Kopfzeile und Hero (kleines Fenster, F-20) */
+  compact: boolean;
 }
 
-export function TodayView({ theme }: TodayViewProps) {
+export function TodayView({ theme, compact }: TodayViewProps) {
   const model = useDayModel();
   const sync = useSyncSummary();
   const settings = useAppStore((s) => s.settings);
@@ -52,6 +54,8 @@ export function TodayView({ theme }: TodayViewProps) {
 
       <Hero hero={model.hero} privateMode={privateMode} />
 
+      {compact ? null : (
+        <>
       {noSources ? (
         <button
           type="button"
@@ -90,6 +94,8 @@ export function TodayView({ theme }: TodayViewProps) {
         privateMode={privateMode}
         isTomorrow={isTomorrow}
       />
+        </>
+      )}
     </>
   );
 }

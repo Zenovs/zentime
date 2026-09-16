@@ -13,7 +13,7 @@ export function Hero({ hero, privateMode }: HeroProps) {
       <div key={`${hero.big}${hero.unit ?? ''}`} className="fade flex items-baseline gap-2">
         <span
           className="tnum font-extrabold tracking-[-0.04em]"
-          style={{ fontSize: 'clamp(64px, 15.5vh, 96px)', lineHeight: 1 }}
+          style={{ fontSize: 'clamp(44px, min(15.5vh, 28vw), 96px)', lineHeight: 1 }}
         >
           {hero.big}
         </span>

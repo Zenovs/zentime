@@ -22,12 +22,12 @@ export function Header(p: HeaderProps) {
   const ThemeIcon = p.theme === 'dark' ? Sun : Moon;
   const stand = p.stale && p.latestSync ? ` · Stand ${formatTime(p.latestSync, p.zone)}` : '';
   return (
-    <header data-tauri-drag-region className="flex items-start justify-between gap-4">
-      <div data-tauri-drag-region className="flex min-w-0 flex-col gap-1">
-        <h1 data-tauri-drag-region className="text-[20px] leading-6 font-semibold">
+    <header className="flex items-start justify-between gap-4">
+      <div className="flex min-w-0 flex-col gap-1">
+        <h1 className="text-[20px] leading-6 font-semibold">
           Heute
         </h1>
-        <div data-tauri-drag-region className="truncate text-[13px] leading-[18px] text-muted">
+        <div className="truncate text-[13px] leading-[18px] text-muted">
           {p.updateHint ?? `${formatLongDate(p.now, p.zone)}${stand}`}
         </div>
       </div>

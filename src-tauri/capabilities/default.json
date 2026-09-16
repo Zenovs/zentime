@@ -2,10 +2,13 @@
   "$schema": "../gen/schemas/desktop-schema.json",
   "identifier": "default",
   "description": "Rechte des Widget-Fensters",
-  "windows": ["main"],
+  "windows": [
+    "main"
+  ],
   "permissions": [
     "core:default",
     "core:window:allow-start-dragging",
+    "core:window:allow-start-resize-dragging",
     "core:window:allow-set-always-on-top",
     "core:window:allow-show",
     "core:window:allow-hide",
@@ -20,11 +23,19 @@
     "opener:default",
     {
       "identifier": "opener:allow-open-url",
-      "allow": [{ "url": "https://**" }]
+      "allow": [
+        {
+          "url": "https://**"
+        }
+      ]
     },
     {
       "identifier": "http:default",
-      "allow": [{ "url": "https://**" }]
+      "allow": [
+        {
+          "url": "https://**"
+        }
+      ]
     }
   ]
 }
