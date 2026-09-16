@@ -51,9 +51,11 @@ describe('Authorize-URL', () => {
 
   it('tokenUrl und openIdConfigUrl', () => {
     expect(tokenUrl('common')).toBe('https://login.microsoftonline.com/common/oauth2/v2.0/token');
+    // Die Discovery liegt unter /v2.0/; unter /oauth2/v2.0/ antwortet Entra mit 404
     expect(openIdConfigUrl('firma.onmicrosoft.com')).toBe(
-      'https://login.microsoftonline.com/firma.onmicrosoft.com/oauth2/v2.0/.well-known/openid-configuration',
+      'https://login.microsoftonline.com/firma.onmicrosoft.com/v2.0/.well-known/openid-configuration',
     );
+    expect(openIdConfigUrl('common')).not.toContain('/oauth2/');
   });
 });
 

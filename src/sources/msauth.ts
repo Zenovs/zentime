@@ -25,8 +25,12 @@ export interface TokenError {
   error_codes?: number[];
 }
 
+function tenantBaseUrl(tenantId: string): string {
+  return `https://login.microsoftonline.com/${encodeURIComponent(tenantId.trim())}`;
+}
+
 export function authorityUrl(tenantId: string): string {
-  return `https://login.microsoftonline.com/${encodeURIComponent(tenantId.trim())}/oauth2/v2.0`;
+  return `${tenantBaseUrl(tenantId)}/oauth2/v2.0`;
 }
 
 export function base64Url(bytes: Uint8Array): string {
@@ -97,9 +101,13 @@ export function tokenUrl(tenantId: string): string {
   return `${authorityUrl(tenantId)}/token`;
 }
 
-/** Öffentliche OpenID-Konfiguration; antwortet mit 400 (AADSTS90002), wenn der Tenant nicht existiert */
+/**
+ * Öffentliche OpenID-Konfiguration; antwortet mit 400 (AADSTS90002), wenn der
+ * Tenant nicht existiert. Sie liegt unter `/{tenant}/v2.0/`, nicht unter
+ * `/{tenant}/oauth2/v2.0/` wie die Authorize- und Token-Endpunkte.
+ */
 export function openIdConfigUrl(tenantId: string): string {
-  return `${authorityUrl(tenantId)}/.well-known/openid-configuration`;
+  return `${tenantBaseUrl(tenantId)}/v2.0/.well-known/openid-configuration`;
 }
 
 /** Liest die Tenant-GUID aus `token_endpoint` bzw. `issuer` der OpenID-Konfiguration */
