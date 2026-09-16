@@ -50,6 +50,7 @@ Was gespeichert wird:
 
 ## Fehlerbehebung
 
+- **«AADSTS90002: Tenant … not found»**: Im Feld Tenant-ID steht kein Verzeichnis, meist die Anwendungs-ID. Richtig ist die «Verzeichnis-ID (Mandant)» von der Übersichtsseite der Registrierung. Alternativ die Domäne eintragen (`firma.onmicrosoft.com` oder die eigene Mail-Domäne). Die Tenant-ID einer Domäne lässt sich auch öffentlich abfragen: `https://login.microsoftonline.com/<domäne>/v2.0/.well-known/openid-configuration` nennt sie in `token_endpoint`.
 - **«AADSTS50011: Die Antwort-URL stimmt nicht überein»**: Die Redirect-URI `http://localhost` fehlt oder ist unter der Plattform «Web» statt «Mobile und Desktop» eingetragen.
 - **«AADSTS7000218: client_assertion or client_secret»**: Die Plattform ist «Web». Entferne sie und lege die Redirect-URI unter «Mobile Anwendungen und Desktopanwendungen» an.
 - **«Neu anmelden» in den Einstellungen**: Der Refresh-Token ist abgelaufen oder wurde widerrufen (z. B. Passwortwechsel, Conditional Access). In der Quellenansicht **Neu anmelden** wählen; andere Quellen laufen weiter.

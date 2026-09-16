@@ -97,6 +97,11 @@ export function tokenUrl(tenantId: string): string {
   return `${authorityUrl(tenantId)}/token`;
 }
 
+/** Öffentliche OpenID-Konfiguration; antwortet mit 400 (AADSTS90002), wenn der Tenant nicht existiert */
+export function openIdConfigUrl(tenantId: string): string {
+  return `${authorityUrl(tenantId)}/.well-known/openid-configuration`;
+}
+
 export function authorizationCodeBody(p: MsAppConfig & { code: string; redirectUri: string; verifier: string }): URLSearchParams {
   return new URLSearchParams({
     client_id: p.clientId.trim(),

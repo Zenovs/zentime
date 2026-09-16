@@ -5,6 +5,7 @@ import {
   authorizationCodeBody,
   buildAuthorizeUrl,
   codeChallenge,
+  openIdConfigUrl,
   codeVerifier,
   parseRedirect,
   refreshTokenBody,
@@ -46,8 +47,11 @@ describe('Authorize-URL', () => {
     expect(url.searchParams.get('state')).toBe('st');
   });
 
-  it('tokenUrl', () => {
+  it('tokenUrl und openIdConfigUrl', () => {
     expect(tokenUrl('common')).toBe('https://login.microsoftonline.com/common/oauth2/v2.0/token');
+    expect(openIdConfigUrl('firma.onmicrosoft.com')).toBe(
+      'https://login.microsoftonline.com/firma.onmicrosoft.com/oauth2/v2.0/.well-known/openid-configuration',
+    );
   });
 });
 

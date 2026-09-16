@@ -4,6 +4,7 @@ import {
   accountFromIdToken,
   authorizationCodeBody,
   buildAuthorizeUrl,
+  openIdConfigUrl,
   parseRedirect,
   refreshTokenBody,
   requiresInteraction,
@@ -57,6 +58,7 @@ export class GraphSession {
   /** Interaktive Anmeldung im Systembrowser (Pflichtenheft 5.1, Login-Schritte 1–4) */
   async login(loginHint?: string): Promise<{ account: string | null }> {
     log.info(`graph ${this.cfg.id}: Anmeldung gestartet`);
+    await this.assertTenantExists();
     const server = await startLoopback();
     try {
       this.revoked = false;
@@ -94,6 +96,24 @@ export class GraphSession {
       throw e;
     } finally {
       await server.cancel().catch(() => undefined);
+    }
+  }
+
+  /**
+   * Prüft vor dem Browser-Login, ob der Tenant existiert. Der häufigste Fehler
+   * ist eine vertauschte Anwendungs-ID im Tenant-Feld (AADSTS90002).
+   */
+  private async assertTenantExists(): Promise<void> {
+    let res: Response;
+    try {
+      res = await this.deps.http(openIdConfigUrl(this.cfg.tenantId), { headers: { Accept: 'application/json' } });
+    } catch (e) {
+      throw new Error(`Anmeldedienst nicht erreichbar: ${describeError(e)}`, { cause: e });
+    }
+    if (res.status === 400 || res.status === 404) {
+      throw new Error(
+        `Tenant «${this.cfg.tenantId}» nicht gefunden. In Entra ID heisst der richtige Wert «Verzeichnis-ID (Mandant)»; die «Anwendungs-ID (Client)» gehört ins Feld Client-ID. Alternativ die Domäne eintragen, z. B. firma.onmicrosoft.com.`,
+      );
     }
   }
 
