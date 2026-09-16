@@ -1,0 +1,8 @@
+{
+  "@odata.context": "https://graph.microsoft.com/v1.0/$metadata#users('me')/calendars(id,name,isDefaultCalendar,owner)",
+  "value": [
+    { "id": "AAMkCal1", "name": "Kalender", "isDefaultCalendar": true, "owner": { "name": "Zeno Beispiel", "address": "zeno@beispiel.ch" } },
+    { "id": "AAMkCal2", "name": "Geburtstage", "isDefaultCalendar": false, "owner": { "name": "Zeno Beispiel", "address": "zeno@beispiel.ch" } },
+    { "id": "AAMkCal3", "name": "Team Marketing", "isDefaultCalendar": false, "owner": { "name": "Team Marketing", "address": "marketing@beispiel.ch" } }
+  ]
+}

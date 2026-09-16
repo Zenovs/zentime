@@ -1,0 +1,51 @@
+{
+  "name": "zentime",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Kalender-Widget für Linux und macOS: zeigt auf einen Blick, wann heute der nächste Termin ist.",
+  "license": "MIT",
+  "type": "module",
+  "packageManager": "pnpm@11.24.0",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc -p tsconfig.json --noEmit && vite build",
+    "preview": "vite preview",
+    "tauri": "tauri",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "lint": "eslint .",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "dependencies": {
+    "@fontsource-variable/inter": "^5.3.0",
+    "@tauri-apps/api": "^2.11.1",
+    "@tauri-apps/plugin-autostart": "^2.5.1",
+    "@tauri-apps/plugin-http": "^2.6.1",
+    "@tauri-apps/plugin-log": "^2.9.1",
+    "@tauri-apps/plugin-opener": "^2.5.5",
+    "@tauri-apps/plugin-store": "^2.4.5",
+    "ical.js": "^2.2.1",
+    "lucide-react": "^1.46.0",
+    "luxon": "^3.7.2",
+    "react": "^19.3.0",
+    "react-dom": "^19.3.0",
+    "zustand": "^5.0.15"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@tailwindcss/vite": "^4.3.3",
+    "@tauri-apps/cli": "^2.11.4",
+    "@types/luxon": "^3.7.5",
+    "@types/node": "^22.20.2",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "@vitejs/plugin-react": "^6.1.1",
+    "eslint": "^10.10.0",
+    "globals": "^17.12.0",
+    "tailwindcss": "^4.3.3",
+    "typescript": "~5.9.0",
+    "typescript-eslint": "^8.70.0",
+    "vite": "^8.3.0",
+    "vitest": "^5.0.1"
+  }
+}

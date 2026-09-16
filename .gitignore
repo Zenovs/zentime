@@ -1,0 +1,14 @@
+# Node
+node_modules/
+dist/
+*.log
+.DS_Store
+
+# Tauri / Rust
+src-tauri/target/
+src-tauri/gen/schemas/
+
+# Lokale Konfiguration, niemals committen
+.env
+.env.*
+*.local
