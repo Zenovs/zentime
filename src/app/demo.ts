@@ -12,6 +12,7 @@ export function demoSettings(theme: Settings['theme'] = 'system'): Settings {
     alwaysOnTop: false,
     autostart: false,
     hideDeclined: true,
+    autoUpdate: true,
     sources: [
       {
         id: 'demo-ms',

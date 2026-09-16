@@ -19,6 +19,7 @@ Die Software läuft komplett lokal, braucht keinen eigenen Server und sendet kei
 - Rahmenloses, verschiebbares Fenster; Position und Grösse werden gespeichert; «Immer im Vordergrund» umschaltbar
 - Tray- bzw. Menüleisten-Icon, Autostart, Privatmodus (`Cmd/Ctrl+Shift+P`) für Bildschirmfreigaben
 - Secrets (Refresh-Tokens, ICS-Adressen) nur im Schlüsselbund (macOS Keychain, Linux Secret Service)
+- Auto-Update: beim Start und danach täglich prüft die App das neueste GitHub-Release, lädt signierte Updates und startet neu (abschaltbar in den Einstellungen)
 
 ## Installation
 
@@ -82,6 +83,7 @@ Alle Secrets bleiben lokal im Schlüsselbund. Client-ID und Tenant-ID stehen in 
 | Privatmodus | `Cmd/Ctrl+Shift+P` |
 | Zurück zur Tagesansicht | `Esc` |
 | Fenster schliessen | verbirgt das Widget; Beenden über das Tray-Menü |
+| Updates | Einstellungen → Updates: automatisch (Standard) oder «Jetzt prüfen» |
 
 ## Entwicklung
 
@@ -94,7 +96,7 @@ pnpm dev              # nur Frontend im Browser, Demo-Daten mit http://localhost
 pnpm test             # Vitest
 pnpm typecheck
 pnpm lint
-pnpm tauri build      # Pakete in src-tauri/target/release/bundle
+pnpm tauri build      # Pakete in src-tauri/target/release/bundle (braucht den Signaturschlüssel, siehe Release)
 ```
 
 Demo-Parameter im Browser: `?demo=tag|leer|ganztags|mehrere`, `&now=HH:MM`, `&theme=light|dark`.
@@ -114,9 +116,29 @@ docs/           Einrichtungsanleitungen
 design/         M0-Mockup (Design-Canvas) und App-Icon
 ```
 
-### Release
+### Release und Auto-Update
 
-Ein Tag `v*` startet [release.yml](.github/workflows/release.yml): Linux-Build auf `ubuntu-22.04` (`.AppImage`, `.deb`), macOS-Build als Universal-Binary (`.dmg`), Artefakte als Draft-Release. Versionierung nach SemVer; die Version steht in `package.json` und wird von Tauri übernommen.
+Jeder Push auf `main` (ausser Änderungen nur an `docs/`, `design/` oder Markdown) wird durch [release.yml](.github/workflows/release.yml) zu einem Release:
+
+1. Lint, Typecheck und Tests laufen als Gate.
+2. Die nächste Version wird bestimmt: Patch-Stelle des neuesten Tags plus eins, oder die Version aus `package.json`, falls sie höher ist (für einen manuellen Sprung auf 1.1.0 also nur `package.json` anpassen).
+3. Der Workflow schreibt die Version in `package.json`, `Cargo.toml` und `Cargo.lock`, committet `release: vX.Y.Z` und setzt den Tag.
+4. Linux (`ubuntu-22.04`: `.AppImage`, `.deb`) und macOS (Universal: `.dmg`) werden gebaut, die Updater-Artefakte mit dem Minisign-Schlüssel signiert und `latest.json` erzeugt.
+5. Das Release wird veröffentlicht. Installierte Apps finden es beim nächsten Start über `releases/latest/download/latest.json`.
+
+Der Updater funktioniert für die `.app` auf macOS und das AppImage auf Linux. Eine `.deb`-Installation aktualisiert sich nicht selbst; dort meldet die Einstellungsseite «Prüfung fehlgeschlagen».
+
+**Signaturschlüssel:** Der private Schlüssel liegt als GitHub-Secret `TAURI_SIGNING_PRIVATE_KEY` (mit `TAURI_SIGNING_PRIVATE_KEY_PASSWORD`) und lokal unter `~/.tauri/zentime.key`. Er darf nicht verloren gehen, sonst können bereits installierte Apps keine Updates mehr annehmen. Der öffentliche Schlüssel steht in `src-tauri/tauri.conf.json` unter `plugins.updater.pubkey`.
+
+Lokaler Release-Build mit Signatur:
+
+```sh
+export TAURI_SIGNING_PRIVATE_KEY="$(cat ~/.tauri/zentime.key)"
+export TAURI_SIGNING_PRIVATE_KEY_PASSWORD="$(security find-generic-password -a zentime -s zentime-updater-key -w)"
+pnpm tauri build
+```
+
+Ohne diese Variablen bricht `pnpm tauri build` ab, weil `createUpdaterArtifacts` aktiv ist. Für einen Debug-Lauf ohne Bundle reicht `pnpm tauri dev`.
 
 ## Datenschutz
 

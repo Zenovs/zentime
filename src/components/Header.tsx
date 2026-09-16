@@ -11,6 +11,8 @@ interface HeaderProps {
   latestSync: number | null;
   hasError: boolean;
   privateMode: boolean;
+  /** Laufendes Update («Update 1.0.2 wird geladen …»), sonst `null` */
+  updateHint: string | null;
   onToggleTheme: () => void;
   onOpenSettings: () => void;
   onTogglePrivate: () => void;
@@ -26,8 +28,7 @@ export function Header(p: HeaderProps) {
           Heute
         </h1>
         <div data-tauri-drag-region className="truncate text-[13px] leading-[18px] text-muted">
-          {formatLongDate(p.now, p.zone)}
-          {stand}
+          {p.updateHint ?? `${formatLongDate(p.now, p.zone)}${stand}`}
         </div>
       </div>
       <div className="-mr-1.5 -mt-1.5 flex items-center">

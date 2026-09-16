@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import { subscribeWithSelector } from 'zustand/middleware';
 import type { CalendarEvent } from '../model/event';
 import { DEFAULT_SETTINGS, type Settings, type SourceConfig } from '../model/settings';
+import type { UpdateStatus } from '../platform/updater';
 
 export type SourceStatus = 'idle' | 'loading' | 'ok' | 'error' | 'auth';
 
@@ -40,6 +41,7 @@ export interface AppState {
   /** Auf die volle Minute ausgerichtete «Jetzt»-Zeit */
   now: number;
   online: boolean;
+  updateStatus: UpdateStatus;
 
   setSettingsLoaded(settings: Settings): void;
   patchSettings(patch: Partial<Settings>): void;
@@ -52,6 +54,7 @@ export interface AppState {
   setNow(ms: number): void;
   togglePrivateMode(): void;
   setOnline(online: boolean): void;
+  setUpdateStatus(status: UpdateStatus): void;
 }
 
 export const useAppStore = create<AppState>()(
@@ -64,6 +67,7 @@ export const useAppStore = create<AppState>()(
     privateMode: false,
     now: Date.now(),
     online: typeof navigator === 'undefined' ? true : navigator.onLine,
+    updateStatus: { state: 'idle' },
 
     setSettingsLoaded: (settings) => set({ settings, settingsLoaded: true }),
     patchSettings: (patch) => set((s) => ({ settings: { ...s.settings, ...patch } })),
@@ -92,6 +96,7 @@ export const useAppStore = create<AppState>()(
     setNow: (ms) => set({ now: ms }),
     togglePrivateMode: () => set((s) => ({ privateMode: !s.privateMode })),
     setOnline: (online) => set({ online }),
+    setUpdateStatus: (updateStatus) => set({ updateStatus }),
   })),
 );
 

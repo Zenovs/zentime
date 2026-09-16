@@ -31,6 +31,8 @@ export interface Settings {
   alwaysOnTop: boolean;
   autostart: boolean;
   hideDeclined: boolean;
+  /** Updates beim Start automatisch installieren (F-23) */
+  autoUpdate: boolean;
   sources: SourceConfig[];
 }
 
@@ -39,6 +41,7 @@ export const DEFAULT_SETTINGS: Settings = {
   alwaysOnTop: false,
   autostart: false,
   hideDeclined: true,
+  autoUpdate: true,
   sources: [],
 };
 

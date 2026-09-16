@@ -11,6 +11,8 @@ import { TodayView } from './components/TodayView';
 import { msUntilNextMinute } from './logic/day';
 import { onTrayCommand, setAlwaysOnTop, showWindowWhenReady } from './platform/desktop';
 import { isTauri, systemZone } from './platform/env';
+import { UPDATE_CHECK_INTERVAL_MS } from './platform/updater';
+import { runUpdateCheck } from './app/update';
 
 const demo = readDemoParams(typeof location === 'undefined' ? '' : location.search);
 
@@ -42,10 +44,17 @@ function useBootstrap() {
       unsubscribe = persistSettings();
       void setAlwaysOnTop(settings.alwaysOnTop);
       await engine.start();
+      if (settings.autoUpdate) void runUpdateCheck();
     })();
+
+    // Auto-Update (F-23): beim Start und danach täglich, solange die App läuft
+    const updateTimer = setInterval(() => {
+      if (useAppStore.getState().settings.autoUpdate) void runUpdateCheck();
+    }, UPDATE_CHECK_INTERVAL_MS);
 
     return () => {
       unsubscribe?.();
+      clearInterval(updateTimer);
       engine.stop();
     };
   }, []);

@@ -1,9 +1,11 @@
 import { ChevronRight, Plus, RefreshCw, TriangleAlert, X } from 'lucide-react';
 import { engine } from '../app/engine';
+import { runUpdateCheck } from '../app/update';
 import { sourceIndex, useAppStore, type SourceRuntime } from '../app/store';
 import { formatTime } from '../logic/day';
 import { APP_VERSION, isTauri, systemZone } from '../platform/env';
 import { setAlwaysOnTop, setAutostart } from '../platform/desktop';
+import { updateStatusText, type UpdateStatus } from '../platform/updater';
 import type { SourceConfig, ThemeMode } from '../model/settings';
 import { sourceColor } from '../model/settings';
 import { Dot, IconButton, SectionLabel, Segmented, Toggle, ViewHeader } from './ui';
@@ -19,10 +21,19 @@ function statusText(cfg: SourceConfig, rt: SourceRuntime | undefined, now: numbe
   return { text: `${kind} · ${when}`, alert: false };
 }
 
+function updateSummary(s: UpdateStatus): string {
+  const running = updateStatusText(s);
+  if (running) return running;
+  if (s.state === 'none') return `Aktuell (geprüft ${formatTime(s.checkedAt, systemZone)})`;
+  if (s.state === 'error') return `Prüfung fehlgeschlagen: ${s.message}`;
+  return 'Noch nicht geprüft';
+}
+
 export function SettingsView() {
   const settings = useAppStore((s) => s.settings);
   const runtime = useAppStore((s) => s.runtime);
   const now = useAppStore((s) => s.now);
+  const updateStatus = useAppStore((s) => s.updateStatus);
   const setView = useAppStore((s) => s.setView);
   const patchSettings = useAppStore((s) => s.patchSettings);
   const upsertSource = useAppStore((s) => s.upsertSource);
@@ -32,6 +43,8 @@ export function SettingsView() {
     { value: 'light', label: 'Hell' },
     { value: 'dark', label: 'Dunkel' },
   ];
+
+  const updateBusy = updateStatus.state === 'checking' || updateStatus.state === 'downloading' || updateStatus.state === 'installing';
 
   return (
     <>
@@ -127,6 +140,25 @@ export function SettingsView() {
             <span className="text-[15px] leading-5">Abgelehnte Termine ausblenden</span>
             <Toggle checked={settings.hideDeclined} label="Abgelehnte Termine ausblenden" onChange={(on) => patchSettings({ hideDeclined: on })} />
           </div>
+        </div>
+      </div>
+
+      <div className="mt-6 flex flex-col gap-2">
+        <SectionLabel>Updates</SectionLabel>
+        <div className="flex items-center justify-between gap-3 py-2">
+          <span className="text-[15px] leading-5">Automatisch aktualisieren</span>
+          <Toggle checked={settings.autoUpdate} label="Updates automatisch installieren" onChange={(on) => patchSettings({ autoUpdate: on })} />
+        </div>
+        <div className="flex items-center justify-between gap-3 text-[13px] leading-[18px] text-muted">
+          <span className="truncate">{updateSummary(updateStatus)}</span>
+          <button
+            type="button"
+            onClick={() => void runUpdateCheck()}
+            disabled={!isTauri || updateBusy}
+            className="flex-none font-semibold text-fg hover:text-muted disabled:opacity-50"
+          >
+            Jetzt prüfen
+          </button>
         </div>
       </div>
 

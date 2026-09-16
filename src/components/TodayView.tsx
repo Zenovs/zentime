@@ -1,5 +1,6 @@
 import { useCallback } from 'react';
 import { useDayModel, useSyncSummary } from '../app/derived';
+import { updateStatusText } from '../platform/updater';
 import { sourceIndex, useAppStore } from '../app/store';
 import { toggledTheme, type ResolvedTheme } from '../app/theme';
 import { dayWindow } from '../logic/day';
@@ -25,6 +26,7 @@ export function TodayView({ theme }: TodayViewProps) {
   const patchSettings = useAppStore((s) => s.patchSettings);
   const selectEvent = useAppStore((s) => s.selectEvent);
   const togglePrivateMode = useAppStore((s) => s.togglePrivateMode);
+  const updateStatus = useAppStore((s) => s.updateStatus);
 
   const colorFor = useCallback((ev: CalendarEvent) => sourceColor(sourceIndex(settings, ev.sourceId)), [settings]);
 
@@ -42,6 +44,7 @@ export function TodayView({ theme }: TodayViewProps) {
         latestSync={sync.latestSync}
         hasError={sync.hasError}
         privateMode={privateMode}
+        updateHint={updateStatusText(updateStatus)}
         onToggleTheme={() => patchSettings({ theme: toggledTheme(theme) })}
         onOpenSettings={() => setView({ name: 'settings' })}
         onTogglePrivate={togglePrivateMode}

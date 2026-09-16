@@ -1,15 +1,67 @@
 name: Release
 
+# Jeder Push auf main wird zu einem Release: Version bestimmen, taggen, bauen,
+# signieren, veröffentlichen. Die Apps holen sich das Update beim nächsten Start.
 on:
   push:
-    tags: ['v*']
+    branches: [main]
+    paths-ignore:
+      - 'docs/**'
+      - 'design/**'
+      - '**.md'
+      - '.github/workflows/ci.yml'
+  workflow_dispatch:
+
+concurrency:
+  group: release
+  cancel-in-progress: false
 
 permissions:
   contents: write
 
 jobs:
+  version:
+    name: Prüfen, Version und Tag
+    runs-on: ubuntu-22.04
+    outputs:
+      version: ${{ steps.next.outputs.version }}
+      tag: ${{ steps.next.outputs.tag }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm lint
+      - run: pnpm typecheck
+      - run: pnpm test
+      - id: next
+        name: Nächste Version bestimmen
+        run: |
+          latest=$(git tag --list 'v*' --sort=-v:refname | head -n 1)
+          next=$(node scripts/next-version.mjs "$latest")
+          echo "Neueste: ${latest:-keine} → nächste: v$next"
+          echo "version=$next" >> "$GITHUB_OUTPUT"
+          echo "tag=v$next" >> "$GITHUB_OUTPUT"
+      - name: Version schreiben, committen, taggen
+        run: |
+          node scripts/set-version.mjs "${{ steps.next.outputs.version }}"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          if ! git diff --quiet; then
+            git commit -am "release: v${{ steps.next.outputs.version }} [skip ci]"
+            git push origin HEAD:main
+          fi
+          git tag -a "${{ steps.next.outputs.tag }}" -m "zentime ${{ steps.next.outputs.version }}"
+          git push origin "${{ steps.next.outputs.tag }}"
+
   build:
     name: Build (${{ matrix.name }})
+    needs: version
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -25,6 +77,8 @@ jobs:
             args: '--target universal-apple-darwin'
     steps:
       - uses: actions/checkout@v7
+        with:
+          ref: ${{ needs.version.outputs.tag }}
       - uses: pnpm/action-setup@v6
       - uses: actions/setup-node@v7
         with:
@@ -45,11 +99,25 @@ jobs:
       - uses: tauri-apps/tauri-action@v0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
         with:
-          tagName: ${{ github.ref_name }}
-          releaseName: 'zentime ${{ github.ref_name }}'
+          tagName: ${{ needs.version.outputs.tag }}
+          releaseName: 'zentime ${{ needs.version.outputs.version }}'
           releaseBody: |
             Installationshinweise stehen im README (macOS: Gatekeeper, Linux: AppImage/deb).
+            Installierte Apps aktualisieren sich beim nächsten Start automatisch.
           releaseDraft: true
           prerelease: false
+          includeUpdaterJson: true
           args: ${{ matrix.args }}
+
+  publish:
+    name: Veröffentlichen
+    needs: [version, build]
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Draft freigeben, damit latest.json für den Updater sichtbar wird
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release edit "${{ needs.version.outputs.tag }}" --repo "$GITHUB_REPOSITORY" --draft=false --latest
