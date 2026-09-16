@@ -1,0 +1,86 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&amp;display=swap">
+  <style>
+    html, body { margin: 0; padding: 0; background: #FFFFFF; }
+    body { font-family: Inter, -apple-system, "Segoe UI", system-ui, sans-serif; -webkit-font-smoothing: antialiased; }
+    * { box-sizing: border-box; }
+    a { color: #1E1E1E; } a:hover { color: #8A8A8A; }
+  </style>
+</helmet>
+<div style="width: 340px; height: 620px; padding: 24px; border-radius: 24px; background: #EBEBEB; color: #1E1E1E; display: flex; flex-direction: column; overflow: hidden;">
+  <div style="display: flex; justify-content: space-between; align-items: center; gap: 16px;">
+    <div style="font-size: 20px; line-height: 24px; font-weight: 600;">Einstellungen</div>
+    <div style="width: 20px; height: 20px; color: #8A8A8A; display: flex; flex: 0 0 auto;"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg></div>
+  </div>
+  <div style="margin-top: 24px; display: flex; flex-direction: column; gap: 8px;">
+    <div style="font-size: 13px; line-height: 16px; color: #8A8A8A;">Quellen</div>
+    <div style="display: flex; flex-direction: column;">
+    <div style="display: flex; align-items: center; gap: 12px; padding: 8px 0;">
+      <span style="width: 8px; height: 8px; border-radius: 4px; background: #7A93B3; flex: 0 0 auto;"></span>
+      <div style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px;">
+        <div style="font-size: 15px; line-height: 20px; font-weight: 600;">Microsoft 365</div>
+        <div style="font-size: 13px; line-height: 16px; color: #8A8A8A; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">zeno@beispiel.ch · verbunden</div>
+      </div>
+      <div style="width: 20px; height: 20px; color: #8A8A8A; display: flex; flex: 0 0 auto;"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"></path></svg></div>
+    </div>
+    <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 4px 0 4px 20px;">
+      <div style="font-size: 15px; line-height: 20px;">Kalender</div>
+      <div style="width: 40px; height: 24px; border-radius: 12px; background: #1E1E1E; position: relative; flex: 0 0 auto;"><div style="position: absolute; top: 2px; left: 18px; width: 20px; height: 20px; border-radius: 10px; background: #EBEBEB;"></div></div>
+    </div>
+    <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 4px 0 4px 20px;">
+      <div style="font-size: 15px; line-height: 20px;">Geburtstage</div>
+      <div style="width: 40px; height: 24px; border-radius: 12px; background: #D6D6D6; position: relative; flex: 0 0 auto;"><div style="position: absolute; top: 2px; left: 2px; width: 20px; height: 20px; border-radius: 10px; background: #FFFFFF;"></div></div>
+    </div>
+    <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 4px 0 4px 20px;">
+      <div style="font-size: 15px; line-height: 20px;">Team Marketing</div>
+      <div style="width: 40px; height: 24px; border-radius: 12px; background: #1E1E1E; position: relative; flex: 0 0 auto;"><div style="position: absolute; top: 2px; left: 18px; width: 20px; height: 20px; border-radius: 10px; background: #EBEBEB;"></div></div>
+    </div>
+    <div style="display: flex; align-items: center; gap: 12px; padding: 8px 0; border-top: 1px solid #D6D6D6;">
+      <span style="width: 8px; height: 8px; border-radius: 4px; background: #8FA986; flex: 0 0 auto;"></span>
+      <div style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px;">
+        <div style="font-size: 15px; line-height: 20px; font-weight: 600;">Google Kalender</div>
+        <div style="font-size: 13px; line-height: 16px; color: #8A8A8A; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Privat · ICS · vor 4 min aktualisiert</div>
+      </div>
+      <div style="width: 20px; height: 20px; color: #8A8A8A; display: flex; flex: 0 0 auto;"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"></path></svg></div>
+    </div>
+    <div style="display: flex; align-items: center; gap: 12px; padding: 12px 0; border-top: 1px solid #D6D6D6;">
+      <div style="width: 20px; height: 20px; color: #1E1E1E; display: flex; flex: 0 0 auto;"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"></path><path d="M12 5v14"></path></svg></div>
+      <div style="font-size: 15px; line-height: 20px; font-weight: 600;">Quelle hinzufügen</div>
+    </div>
+    </div>
+  </div>
+  <div style="margin-top: 24px; display: flex; flex-direction: column; gap: 8px;">
+    <div style="font-size: 13px; line-height: 16px; color: #8A8A8A;">Darstellung</div>
+    <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 2px; padding: 2px; border-radius: 10px; background: #D6D6D6; height: 32px;">
+      <div style="display: flex; align-items: center; justify-content: center; border-radius: 8px; background: #EBEBEB; color: #1E1E1E; font-size: 13px; line-height: 16px; font-weight: 600;">System</div>
+      <div style="display: flex; align-items: center; justify-content: center; border-radius: 8px; background: transparent; color: #8A8A8A; font-size: 13px; line-height: 16px; font-weight: 600;">Hell</div>
+      <div style="display: flex; align-items: center; justify-content: center; border-radius: 8px; background: transparent; color: #8A8A8A; font-size: 13px; line-height: 16px; font-weight: 600;">Dunkel</div>
+    </div>
+    <div style="display: flex; flex-direction: column;">
+    <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 8px 0;">
+      <div style="font-size: 15px; line-height: 20px;">Immer im Vordergrund</div>
+      <div style="width: 40px; height: 24px; border-radius: 12px; background: #1E1E1E; position: relative; flex: 0 0 auto;"><div style="position: absolute; top: 2px; left: 18px; width: 20px; height: 20px; border-radius: 10px; background: #EBEBEB;"></div></div>
+    </div>
+    <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 8px 0;">
+      <div style="font-size: 15px; line-height: 20px;">Beim Anmelden starten</div>
+      <div style="width: 40px; height: 24px; border-radius: 12px; background: #D6D6D6; position: relative; flex: 0 0 auto;"><div style="position: absolute; top: 2px; left: 2px; width: 20px; height: 20px; border-radius: 10px; background: #FFFFFF;"></div></div>
+    </div>
+    <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 8px 0;">
+      <div style="font-size: 15px; line-height: 20px;">Abgelehnte Termine ausblenden</div>
+      <div style="width: 40px; height: 24px; border-radius: 12px; background: #1E1E1E; position: relative; flex: 0 0 auto;"><div style="position: absolute; top: 2px; left: 18px; width: 20px; height: 20px; border-radius: 10px; background: #EBEBEB;"></div></div>
+    </div>
+    </div>
+  </div>
+  <div style="margin-top: auto; font-size: 13px; line-height: 18px; color: #8A8A8A;">zentime 0.1.0</div>
+</div>
+</x-dc>
+</body>
+</html>

@@ -1,0 +1,174 @@
+{
+  "artboards": [
+    {
+      "file": "Main.dc.html",
+      "title": "Hell · 1 · Termin läuft",
+      "x": 0,
+      "y": 120,
+      "w": 340,
+      "h": 620
+    },
+    {
+      "file": "HellBald.dc.html",
+      "title": "Hell · 2 · Nächster Termin ≤ 60 min",
+      "x": 420,
+      "y": 120,
+      "w": 340,
+      "h": 620
+    },
+    {
+      "file": "HellSpaeter.dc.html",
+      "title": "Hell · 3 · Nächster Termin > 60 min (offline)",
+      "x": 840,
+      "y": 120,
+      "w": 340,
+      "h": 620
+    },
+    {
+      "file": "HellMehrere.dc.html",
+      "title": "Hell · 4 · Mehrere Termine gleichzeitig",
+      "x": 1260,
+      "y": 120,
+      "w": 340,
+      "h": 620
+    },
+    {
+      "file": "HellMorgen.dc.html",
+      "title": "Hell · 5 · Heute nichts mehr, morgen etwas",
+      "x": 1680,
+      "y": 120,
+      "w": 340,
+      "h": 620
+    },
+    {
+      "file": "HellLeer.dc.html",
+      "title": "Hell · 6 · Heute keine Termine",
+      "x": 2100,
+      "y": 120,
+      "w": 340,
+      "h": 620
+    },
+    {
+      "file": "HellGanztags.dc.html",
+      "title": "Hell · 7 · Nur ganztägige Termine",
+      "x": 2520,
+      "y": 120,
+      "w": 340,
+      "h": 620
+    },
+    {
+      "file": "HellEinstellungen.dc.html",
+      "title": "Hell · Einstellungen",
+      "x": 2940,
+      "y": 120,
+      "w": 340,
+      "h": 620
+    },
+    {
+      "file": "HellQuelle.dc.html",
+      "title": "Hell · Quelle hinzufügen (Microsoft 365)",
+      "x": 3360,
+      "y": 120,
+      "w": 340,
+      "h": 620
+    },
+    {
+      "file": "DunkelLaeuft.dc.html",
+      "title": "Dunkel · 1 · Termin läuft",
+      "x": 0,
+      "y": 900,
+      "w": 340,
+      "h": 620
+    },
+    {
+      "file": "DunkelBald.dc.html",
+      "title": "Dunkel · 2 · Nächster Termin ≤ 60 min",
+      "x": 420,
+      "y": 900,
+      "w": 340,
+      "h": 620
+    },
+    {
+      "file": "DunkelSpaeter.dc.html",
+      "title": "Dunkel · 3 · Nächster Termin > 60 min (offline)",
+      "x": 840,
+      "y": 900,
+      "w": 340,
+      "h": 620
+    },
+    {
+      "file": "DunkelMehrere.dc.html",
+      "title": "Dunkel · 4 · Mehrere Termine gleichzeitig",
+      "x": 1260,
+      "y": 900,
+      "w": 340,
+      "h": 620
+    },
+    {
+      "file": "DunkelMorgen.dc.html",
+      "title": "Dunkel · 5 · Heute nichts mehr, morgen etwas",
+      "x": 1680,
+      "y": 900,
+      "w": 340,
+      "h": 620
+    },
+    {
+      "file": "DunkelLeer.dc.html",
+      "title": "Dunkel · 6 · Heute keine Termine",
+      "x": 2100,
+      "y": 900,
+      "w": 340,
+      "h": 620
+    },
+    {
+      "file": "DunkelGanztags.dc.html",
+      "title": "Dunkel · 7 · Nur ganztägige Termine",
+      "x": 2520,
+      "y": 900,
+      "w": 340,
+      "h": 620
+    },
+    {
+      "file": "DunkelEinstellungen.dc.html",
+      "title": "Dunkel · Einstellungen (Quelle mit Fehler)",
+      "x": 2940,
+      "y": 900,
+      "w": 340,
+      "h": 620
+    },
+    {
+      "file": "DunkelQuelle.dc.html",
+      "title": "Dunkel · Quelle hinzufügen (Google ICS)",
+      "x": 3360,
+      "y": 900,
+      "w": 340,
+      "h": 620
+    }
+  ],
+  "annotations": [
+    {
+      "id": "legende",
+      "x": 0,
+      "y": 0,
+      "w": 640,
+      "text": "zentime · M0 Mockup (Pflichtenheft 0.1)\nObere Reihe Hell, untere Reihe Dunkel. Spalten 1–7 sind die Hero-Zustände aus 7.2, danach Einstellungen und «Quelle hinzufügen».\nZustand 3 zeigt zusätzlich den Offline-Fall (Warn-Icon, «Stand 13:15»). Dunkel: Einstellungen mit abgelaufener Microsoft-Anmeldung, Quelle-Dialog in der Google-Variante."
+    },
+    {
+      "id": "hero-einheit",
+      "x": 0,
+      "y": 1560,
+      "w": 420,
+      "text": "Abweichung zum Pflichtenheft: «25 min» passt bei 96 px nicht in 292 px Breite. Vorschlag: Zahl 96 px, Einheit «min» 24 px gedämpft, auf der Grundlinie – analog zur Wetter-App."
+    },
+    {
+      "id": "tagesleiste",
+      "x": 460,
+      "y": 1560,
+      "w": 420,
+      "text": "Tagesleiste: Spalten 60 px, laufen rechts aus dem Fenster (Scroll-Hinweis). Ausgewählter bzw. laufender Termin mit Fläche in --line, vergangene 40 % Deckkraft. Beim laufenden Termin ist die Startzeit in --fg."
+    }
+  ],
+  "launch": {
+    "view": "canvas"
+  }
+}
