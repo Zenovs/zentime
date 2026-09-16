@@ -1,6 +1,6 @@
 [package]
 name = "zentime"
-version = "1.0.4"
+version = "1.0.5"
 description = "Kalender-Widget für Linux und macOS: wann ist heute der nächste Termin?"
 authors = ["Zeno"]
 license = "MIT"
