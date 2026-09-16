@@ -139,24 +139,38 @@ export function App() {
 
   return (
     <div
-      className="relative flex h-full w-full flex-col overflow-y-auto rounded-3xl bg-bg p-6 text-fg no-scrollbar"
+      className="relative flex h-full w-full flex-col rounded-3xl text-fg"
       data-theme={theme}
-      style={{
-        ...(demo.frame ? { width: 340, height: 620 } : {}),
-        // Deckkraft nur in der Tagesansicht und nur auf den Hintergrund; Einstellungen und Dialoge bleiben deckend
-        backgroundColor: theme === 'dark' ? `rgba(38, 38, 38, ${viewOpacity})` : `rgba(235, 235, 235, ${viewOpacity})`,
-      }}
+      style={demo.frame ? { width: 340, height: 620 } : undefined}
     >
+      {/*
+        Die Deckkraft liegt auf einer eigenen, deckend gezeichneten Ebene und
+        wird erst beim Zusammensetzen angewandt (Deckkraft nur in der
+        Tagesansicht; Einstellungen und Dialoge bleiben deckend).
+
+        Würde stattdessen der Wurzelknoten halbtransparent gefüllt, mischte
+        WebKitGTK bei transparenten Fenstern jeden neuen Frame über den alten,
+        statt die Fläche vorher zu löschen: häufig neu gezeichnete Bereiche
+        wie der Hero wurden dann Schicht um Schicht dunkler, und eine einmal
+        geöffnete Ansicht blieb als Geisterbild stehen.
+      */}
+      <div
+        className="pointer-events-none absolute inset-0 rounded-3xl bg-bg"
+        style={{ opacity: viewOpacity, willChange: 'opacity' }}
+        aria-hidden
+      />
       <ResizeHandles />
-      {!loaded ? null : view.name === 'today' ? (
-        <TodayView theme={theme} compact={compact} />
-      ) : view.name === 'settings' ? (
-        <SettingsView />
-      ) : view.name === 'add-source' ? (
-        <AddSourceView initialKind={view.kind} />
-      ) : (
-        <SourceView id={view.id} />
-      )}
+      <div className="relative flex min-h-0 flex-1 flex-col overflow-y-auto p-6 no-scrollbar">
+        {!loaded ? null : view.name === 'today' ? (
+          <TodayView theme={theme} compact={compact} />
+        ) : view.name === 'settings' ? (
+          <SettingsView />
+        ) : view.name === 'add-source' ? (
+          <AddSourceView initialKind={view.kind} />
+        ) : (
+          <SourceView id={view.id} />
+        )}
+      </div>
     </div>
   );
 }

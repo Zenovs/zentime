@@ -14,11 +14,9 @@ pub fn prepare_env() {
             std::env::set_var("GDK_BACKEND", "x11");
         }
 
-        // Bei transparenten Fenstern zeichnet der DMABUF-Renderer von WebKitGTK
-        // neue Frames über den alten Inhalt, statt die Fläche vorher zu löschen.
-        // Sichtbar wird das, sobald die Tagesansicht mit Deckkraft < 100 % auf
-        // eine zuvor deckende Ansicht folgt: die alte Seite bleibt als
-        // Geisterbild stehen, statt den Desktop durchscheinen zu lassen.
+        // Der DMABUF-Renderer von WebKitGTK lässt das Fenster auf manchen
+        // Systemen (vor allem mit NVIDIA-Treiber) leer, siehe den Hinweis in
+        // scripts/install-linux.sh. Er wird deshalb abgeschaltet.
         if std::env::var_os("WEBKIT_DISABLE_DMABUF_RENDERER").is_none() {
             std::env::set_var("WEBKIT_DISABLE_DMABUF_RENDERER", "1");
         }

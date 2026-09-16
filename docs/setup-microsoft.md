@@ -75,6 +75,7 @@ Was gespeichert wird:
 - **«AADSTS90002: Tenant … not found»**: Unter «Erweitert» steht ein Wert, der kein Verzeichnis ist, meist die Anwendungs-ID. Feld leeren und die E-Mail-Adresse verwenden; zentime ermittelt das Verzeichnis dann selbst.
 - **«AADSTS700016: Application … was not found in the directory»**: Die Client-ID gehört zu keiner Registrierung in diesem Verzeichnis. Client-ID prüfen oder die Registrierung im richtigen Tenant anlegen.
 - **«AADSTS65001» oder Zustimmungsdialog**: Die Administratorzustimmung fehlt. Im Portal unter API-Berechtigungen erteilen oder den Cloud-Shell-Befehl oben ausführen.
+- **«AADSTS500113: No reply address is registered for the application»**: Die Registrierung hat noch gar keine Antwort-URL. Im Portal unter **Authentifizierung** → **Plattform hinzufügen** → **Mobile Anwendungen und Desktopanwendungen** die URI `http://localhost` eintragen. Per Cloud Shell: `az ad app update --id <CLIENT-ID> --public-client-redirect-uris http://localhost`
 - **«AADSTS50011: Die Antwort-URL stimmt nicht überein»**: Die Redirect-URI `http://localhost` fehlt oder ist unter der Plattform «Web» statt «Mobile und Desktop» eingetragen.
 - **«AADSTS7000218: client_assertion or client_secret»**: Die Plattform ist «Web». Entferne sie und lege die Redirect-URI unter «Mobile Anwendungen und Desktopanwendungen» an.
 - **«Neu anmelden» in den Einstellungen**: Der Refresh-Token ist abgelaufen oder wurde widerrufen (z. B. Passwortwechsel, Conditional Access). In der Quellenansicht **Neu anmelden** wählen; andere Quellen laufen weiter.
