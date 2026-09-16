@@ -9,7 +9,9 @@ on:
       - 'docs/**'
       - 'design/**'
       - '**.md'
+      - 'scripts/install-*.sh'
       - '.github/workflows/ci.yml'
+      - '.github/workflows/release.yml'
   workflow_dispatch:
 
 concurrency:
@@ -105,8 +107,13 @@ jobs:
           tagName: ${{ needs.version.outputs.tag }}
           releaseName: 'zentime ${{ needs.version.outputs.version }}'
           releaseBody: |
-            Installationshinweise stehen im README (macOS: Gatekeeper, Linux: AppImage/deb).
-            Installierte Apps aktualisieren sich beim nächsten Start automatisch.
+            **Installation mit einem Befehl im Terminal**
+
+            macOS: `curl -fsSL https://raw.githubusercontent.com/Zenovs/zentime/main/scripts/install-macos.sh | bash`
+
+            Linux: `curl -fsSL https://raw.githubusercontent.com/Zenovs/zentime/main/scripts/install-linux.sh | bash`
+
+            Installierte Apps aktualisieren sich beim nächsten Start automatisch. Details im README.
           releaseDraft: true
           prerelease: false
           includeUpdaterJson: true

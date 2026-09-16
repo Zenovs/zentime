@@ -23,44 +23,42 @@ Die Software läuft komplett lokal, braucht keinen eigenen Server und sendet kei
 
 ## Installation
 
-Fertige Pakete liegen unter [Releases](https://github.com/Zenovs/zentime/releases): `.dmg` (macOS 13+, Universal), `.AppImage` und `.deb` (Ubuntu 24.04, x86_64).
+Ein Befehl im Terminal genügt. Er lädt die neueste Version, installiert sie und startet die App. Danach hält sich zentime über den eingebauten Updater selbst aktuell.
 
-### macOS
-
-Die App ist nicht signiert. Gatekeeper blockiert sie deshalb beim ersten Start.
-
-1. `.dmg` öffnen, `zentime.app` nach `/Applications` ziehen
-2. Rechtsklick auf die App → **Öffnen** → im Dialog erneut **Öffnen**
-
-Alternativ im Terminal:
+### macOS (13 oder neuer, Apple Silicon und Intel)
 
 ```sh
-xattr -dr com.apple.quarantine /Applications/zentime.app
+curl -fsSL https://raw.githubusercontent.com/Zenovs/zentime/main/scripts/install-macos.sh | bash
 ```
+
+Das Skript legt `zentime.app` nach `/Applications` (oder `~/Applications`), entfernt die Gatekeeper-Quarantäne, signiert das Bundle ad hoc und startet die App. Ein Ziehen in «Programme» ist nicht nötig. Der gleiche Befehl aktualisiert eine bestehende Installation.
 
 zentime zeigt kein Dock-Icon; es lebt in der Menüleiste (Icon «z»). Über das Menü lässt sich das Widget zeigen und verbergen, aktualisieren, die Einstellungen öffnen und die App beenden.
 
-### Linux (Ubuntu 24.04)
-
-**AppImage**
+Manuell über die `.dmg` von [Releases](https://github.com/Zenovs/zentime/releases): Die App ist nicht signiert, macOS meldet sie deshalb als «beschädigt». Nach dem Kopieren nach `/Applications` im Terminal ausführen:
 
 ```sh
-chmod +x zentime_*.AppImage
-./zentime_*.AppImage
+xattr -cr /Applications/zentime.app && codesign --force --deep --sign - /Applications/zentime.app
 ```
 
-**deb**
+### Linux (Ubuntu 24.04, x86_64)
+
+```sh
+curl -fsSL https://raw.githubusercontent.com/Zenovs/zentime/main/scripts/install-linux.sh | bash
+```
+
+Das Skript installiert falls nötig FUSE 2 (fragt nach dem sudo-Passwort), legt das AppImage nach `~/Applications/zentime.AppImage`, erzeugt einen Menüeintrag und startet die App. Nur das AppImage aktualisiert sich selbst; das `.deb` aus den Releases ist eine Alternative ohne Auto-Update:
 
 ```sh
 sudo apt install ./zentime_*.deb
 ```
 
-Voraussetzungen und Hinweise:
+Hinweise für Linux:
 
 - **Schlüsselbund**: Es muss ein Secret Service laufen (GNOME Keyring, bei Ubuntu Standard).
 - **Tray-Icon**: GNOME zeigt Tray-Icons nur mit der Erweiterung «AppIndicator and KStatusNotifierItem Support». Ohne Tray ist das Widget trotzdem voll bedienbar: Einstellungen über das Zahnrad im Widget, Beenden über `Cmd/Ctrl+Q` im Widget bzw. das Systemmenü.
 - **Wayland**: GNOME ignoriert unter Wayland «Immer im Vordergrund» und Fensterpositionen. zentime startet deshalb automatisch über XWayland (`GDK_BACKEND=x11`). Wer natives Wayland will, setzt `ZENTIME_NATIVE_WAYLAND=1`, verzichtet dann aber auf Position und Vordergrund.
-- **Leeres Fenster** (v. a. NVIDIA): `WEBKIT_DISABLE_DMABUF_RENDERER=1 ./zentime_*.AppImage`
+- **Leeres Fenster** (v. a. NVIDIA): `WEBKIT_DISABLE_DMABUF_RENDERER=1 ~/Applications/zentime.AppImage`
 - **Runde Ecken** brauchen einen Compositor; ohne Compositor sind die Ecken eckig.
 
 ## Quellen einrichten
