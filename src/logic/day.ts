@@ -11,11 +11,61 @@ export function dayWindow(nowMs: number, zone: string, offsetDays = 0): TimeWind
   return { start: start.toMillis(), end: end.toMillis() };
 }
 
-/** Abruffenster: heute 00:00 bis übermorgen 00:00 (Pflichtenheft 5.1 / 5.2) */
-export function fetchWindow(nowMs: number, zone: string): TimeWindow {
-  const today = dayWindow(nowMs, zone);
-  const tomorrow = dayWindow(nowMs, zone, 1);
-  return { start: today.start, end: tomorrow.end };
+/** Tagesabstand zu heute; das Tag-Rad kennt keine Grenze */
+export type DayOffset = number;
+
+/** Bereich geladener Tage, als Abstand zu heute */
+export interface DayRange {
+  from: number;
+  to: number;
+}
+
+/** Bereich, der beim Start geladen wird: gestern bis morgen */
+export const INITIAL_DAY_RANGE: DayRange = { from: -1, to: 1 };
+
+/** So viele Tage werden auf einmal dazugeladen, wenn das Rad an den Rand kommt */
+export const RANGE_CHUNK = 7;
+/** Ab diesem Abstand zum Rand wird nachgeladen, bevor der Tag leer erscheint */
+export const RANGE_MARGIN = 1;
+
+/** Deckt der Bereich den Tag mitsamt Sicherheitsabstand ab? */
+export function rangeCovers(range: DayRange, offset: number): boolean {
+  return offset >= range.from + RANGE_MARGIN && offset <= range.to - RANGE_MARGIN;
+}
+
+/**
+ * Erweitert den Bereich so, dass der Tag samt Abstand darin liegt — nur auf der
+ * Seite, an der es nötig ist. Wer vorwärts blättert, lädt keine Vergangenheit.
+ */
+export function growRange(range: DayRange, offset: number): DayRange {
+  if (rangeCovers(range, offset)) return range;
+  return {
+    from: offset < range.from + RANGE_MARGIN ? offset - RANGE_CHUNK : range.from,
+    to: offset > range.to - RANGE_MARGIN ? offset + RANGE_CHUNK : range.to,
+  };
+}
+
+/**
+ * Abruffenster über den geladenen Tagesbereich (Pflichtenheft 5.1 / 5.2).
+ * Es wächst mit, sobald im Tag-Rad weiter geblättert wird.
+ */
+export function fetchWindow(nowMs: number, zone: string, range: DayRange = INITIAL_DAY_RANGE): TimeWindow {
+  return { start: dayWindow(nowMs, zone, range.from).start, end: dayWindow(nowMs, zone, range.to).end };
+}
+
+/** «Gestern» / «Heute» / «Morgen», weiter weg der Wochentag */
+export function dayTitle(offset: DayOffset, nowMs: number, zone: string): string {
+  const named: Record<number, string> = { [-2]: 'Vorgestern', [-1]: 'Gestern', 0: 'Heute', 1: 'Morgen', 2: 'Übermorgen' };
+  return (
+    named[offset] ??
+    DateTime.fromMillis(nowMs, { zone }).plus({ days: offset }).setLocale('de-CH').toFormat('cccc')
+  );
+}
+
+/** Beschriftung einer Radposition: Wochentag und Tageszahl, z. B. «Di» / «15» */
+export function dayLabel(nowMs: number, zone: string, offsetDays: number): { weekday: string; day: string } {
+  const d = DateTime.fromMillis(nowMs, { zone }).plus({ days: offsetDays }).setLocale('de-CH');
+  return { weekday: d.toFormat('ccc'), day: d.toFormat('d') };
 }
 
 /** Kalendertag als `YYYY-MM-DD`, dient als Schlüssel für den Tageswechsel */

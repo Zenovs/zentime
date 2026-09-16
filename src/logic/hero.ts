@@ -2,7 +2,7 @@ import type { CalendarEvent } from '../model/event';
 import { formatTime } from './day';
 import { nextEvent, runningEvents } from './timeline';
 
-export type HeroKind = 'running' | 'soon' | 'later' | 'tomorrow' | 'allDayOnly' | 'done' | 'none';
+export type HeroKind = 'running' | 'soon' | 'later' | 'tomorrow' | 'allDayOnly' | 'done' | 'none' | 'day';
 
 export interface Hero {
   kind: HeroKind;
@@ -97,4 +97,23 @@ export function computeHero(input: HeroInput): Hero {
     text: firstAllDay ? displayTitle(firstAllDay) : 'Heute nichts mehr',
     eventId: last?.id ?? null,
   };
+}
+
+/**
+ * Hero für einen anderen Tag als heute (Tag-Rad). Ein Countdown wäre dort
+ * sinnlos, deshalb zeigt er den Beginn des ersten Termins und wie viele es sind.
+ */
+export function computeDayHero(input: { timed: readonly CalendarEvent[]; allDay: readonly CalendarEvent[]; zone: string }): Hero {
+  const { timed, allDay, zone } = input;
+  const first = timed[0];
+  if (first) {
+    const count = timed.length > 1 ? `${timed.length} Termine · ` : '';
+    return { kind: 'day', big: formatTime(first.start, zone), unit: null, muted: count, text: displayTitle(first), eventId: first.id };
+  }
+  const firstAllDay = allDay[0];
+  if (firstAllDay) {
+    const more = allDay.length > 1 ? ` +${allDay.length - 1}` : '';
+    return { kind: 'day', big: 'frei', unit: null, muted: '', text: displayTitle(firstAllDay) + more, eventId: firstAllDay.id };
+  }
+  return { kind: 'day', big: 'frei', unit: null, muted: '', text: 'Keine Termine', eventId: null };
 }

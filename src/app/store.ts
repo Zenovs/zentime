@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import { subscribeWithSelector } from 'zustand/middleware';
 import type { CalendarEvent } from '../model/event';
 import { DEFAULT_SETTINGS, type Settings, type SourceConfig } from '../model/settings';
+import { INITIAL_DAY_RANGE, type DayOffset, type DayRange } from '../logic/day';
 import type { UpdateStatus } from '../platform/updater';
 
 export type SourceStatus = 'idle' | 'loading' | 'ok' | 'error' | 'auth';
@@ -36,6 +37,10 @@ export interface AppState {
   runtime: Record<string, SourceRuntime>;
   view: View;
   selectedEventId: string | null;
+  /** Gewählter Tag im Tag-Rad, 0 = heute; unbegrenzt in beide Richtungen */
+  dayOffset: DayOffset;
+  /** Tage, für die Termine geladen sind; wächst beim Blättern mit */
+  dayRange: DayRange;
   /** Privatmodus (F-19): Titel ausgeblendet, z. B. für Bildschirmfreigaben */
   privateMode: boolean;
   /** Auf die volle Minute ausgerichtete «Jetzt»-Zeit */
@@ -51,6 +56,8 @@ export interface AppState {
   dropRuntime(id: string): void;
   setView(view: View): void;
   selectEvent(id: string | null): void;
+  setDayOffset(offset: DayOffset): void;
+  setDayRange(range: DayRange): void;
   setNow(ms: number): void;
   togglePrivateMode(): void;
   setOnline(online: boolean): void;
@@ -64,6 +71,8 @@ export const useAppStore = create<AppState>()(
     runtime: {},
     view: { name: 'today' },
     selectedEventId: null,
+    dayOffset: 0,
+    dayRange: INITIAL_DAY_RANGE,
     privateMode: false,
     now: Date.now(),
     online: typeof navigator === 'undefined' ? true : navigator.onLine,
@@ -93,6 +102,9 @@ export const useAppStore = create<AppState>()(
       }),
     setView: (view) => set({ view }),
     selectEvent: (id) => set({ selectedEventId: id }),
+    // Tagwechsel im Rad hebt die Terminauswahl auf, sie gehört zum alten Tag
+    setDayOffset: (dayOffset) => set({ dayOffset, selectedEventId: null }),
+    setDayRange: (dayRange) => set({ dayRange }),
     setNow: (ms) => set({ now: ms }),
     togglePrivateMode: () => set((s) => ({ privateMode: !s.privateMode })),
     setOnline: (online) => set({ online }),

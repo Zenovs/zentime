@@ -1,4 +1,4 @@
-import { dayKey, fetchWindow } from '../logic/day';
+import { dayKey, fetchWindow, growRange, rangeCovers } from '../logic/day';
 import type { CalendarEvent } from '../model/event';
 import { secretKeys, type GraphSourceConfig, type IcsSourceConfig, type SourceConfig } from '../model/settings';
 import { fetchCalendarView, fetchCalendars, type GraphCalendarRaw } from '../sources/graph';
@@ -122,6 +122,8 @@ export class SyncEngine {
     if (day !== this.currentDay) {
       this.currentDay = day;
       log.info('Tageswechsel');
+      // Das Tag-Rad zeigte bis eben einen Tag, der nun anders heisst
+      this.store.setDayOffset(0);
       this.reparseIcsFromRaw();
       await this.refreshAll(true);
       return;
@@ -228,7 +230,7 @@ export class SyncEngine {
   }
 
   private parseIcsText(cfg: IcsSourceConfig, text: string): CalendarEvent[] {
-    return parseIcs(text, fetchWindow(this.deps.now(), this.deps.zone), {
+    return parseIcs(text, fetchWindow(this.deps.now(), this.deps.zone, this.store.dayRange), {
       sourceId: cfg.id,
       calendarName: cfg.name,
       zone: this.deps.zone,
@@ -257,7 +259,7 @@ export class SyncEngine {
     if (!res.ok) throw new HttpError(res.status, `Server antwortete mit ${res.status}`);
     const text = await res.text();
     if (!/BEGIN:VCALENDAR/i.test(text)) throw new Error('Die Adresse liefert keinen Kalender');
-    const events = parseIcs(text, fetchWindow(this.deps.now(), this.deps.zone), {
+    const events = parseIcs(text, fetchWindow(this.deps.now(), this.deps.zone, this.store.dayRange), {
       sourceId: 'probe',
       calendarName: name,
       zone: this.deps.zone,
@@ -288,7 +290,7 @@ export class SyncEngine {
       await session.getAccessToken();
       return { events: [], cache: { kind: 'graph', syncedAt: this.deps.now(), events: [] } };
     }
-    const window = fetchWindow(this.deps.now(), this.deps.zone);
+    const window = fetchWindow(this.deps.now(), this.deps.zone, this.store.dayRange);
     const lists = await Promise.all(
       enabled.map((c) =>
         fetchCalendarView((url) => session.fetchJson(url), c.id, window, {
@@ -300,6 +302,24 @@ export class SyncEngine {
     );
     const events = mergeEvents(lists);
     return { events, cache: { kind: 'graph', syncedAt: this.deps.now(), events } };
+  }
+
+  /**
+   * Tag im Tag-Rad wechseln. Liegt er ausserhalb des geladenen Bereichs, wächst
+   * dieser mit: ICS lässt sich sofort aus dem gespeicherten Text neu berechnen,
+   * Graph braucht dafür einen Abruf.
+   */
+  showDay(offset: number): void {
+    this.store.setDayOffset(offset);
+    const range = this.store.dayRange;
+    if (rangeCovers(range, offset)) return;
+    const grown = growRange(range, offset);
+    this.store.setDayRange(grown);
+    log.info(`Tagesbereich erweitert auf ${grown.from} bis ${grown.to}`);
+    this.reparseIcsFromRaw();
+    for (const cfg of this.store.settings.sources) {
+      if (cfg.kind === 'graph') void this.refreshSource(cfg.id, true);
+    }
   }
 
   /** Interaktive Anmeldung und Kalenderliste (Einrichtung oder «Neu anmelden») */

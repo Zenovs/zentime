@@ -31,9 +31,10 @@ describe('dayWindow', () => {
 });
 
 describe('fetchWindow', () => {
-  it('reicht von heute 00:00 bis übermorgen 00:00', () => {
+  // Seit dem Tag-Rad reicht das Fenster einen Tag weiter zurück und wächst mit
+  it('reicht ohne Angabe von gestern 00:00 bis übermorgen 00:00', () => {
     const w = fetchWindow(at('15:00'), ZONE);
-    expect(w.start).toBe(at('00:00'));
+    expect(w.start).toBe(at('00:00', '2026-09-15'));
     expect(w.end).toBe(at('00:00', '2026-09-18'));
   });
 });

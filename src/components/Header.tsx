@@ -4,7 +4,10 @@ import type { ResolvedTheme } from '../app/theme';
 import { IconButton } from './ui';
 
 interface HeaderProps {
-  now: number;
+  /** «Gestern» / «Heute» / «Morgen» */
+  title: string;
+  /** Tag, dessen Datum in der Kopfzeile steht */
+  dateMs: number;
   zone: string;
   theme: ResolvedTheme;
   stale: boolean;
@@ -24,11 +27,9 @@ export function Header(p: HeaderProps) {
   return (
     <header className="flex items-start justify-between gap-4">
       <div className="flex min-w-0 flex-col gap-1">
-        <h1 className="text-[20px] leading-6 font-semibold">
-          Heute
-        </h1>
+        <h1 className="text-[20px] leading-6 font-semibold">{p.title}</h1>
         <div className="truncate text-[13px] leading-[18px] text-muted">
-          {p.updateHint ?? `${formatLongDate(p.now, p.zone)}${stand}`}
+          {p.updateHint ?? `${formatLongDate(p.dateMs, p.zone)}${stand}`}
         </div>
       </div>
       <div className="-mr-1.5 -mt-1.5 flex items-center">

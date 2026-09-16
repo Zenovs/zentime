@@ -16,6 +16,8 @@ interface DetailGridProps {
   privateMode: boolean;
   /** Der ausgewählte Termin gehört zu morgen (F-12) */
   isTomorrow: boolean;
+  /** Der gezeigte Tag ist heute; nur dann gibt es ein «noch» */
+  isToday: boolean;
 }
 
 const DASH = '–';
@@ -52,7 +54,7 @@ export function formatGap(gap: Gap | null, zone: string): string {
 }
 
 /** Zwei Spalten, Label klein und sekundär, Wert fett (7.4) */
-export function DetailGrid({ event, zone, remaining, gap, color, privateMode, isTomorrow }: DetailGridProps) {
+export function DetailGrid({ event, zone, remaining, gap, color, privateMode, isTomorrow, isToday }: DetailGridProps) {
   const row = 'grid grid-cols-2 gap-4 py-2';
   const line = 'border-b border-line';
   const hidden = privateMode && !!event;
@@ -93,10 +95,10 @@ export function DetailGrid({ event, zone, remaining, gap, color, privateMode, is
         </Cell>
       </div>
       <div className={cx(row, 'pb-0')}>
-        <Cell label="Noch heute">
+        <Cell label={isToday ? 'Noch heute' : 'Termine'}>
           <Text>{formatRemaining(remaining)}</Text>
         </Cell>
-        <Cell label="Nächste Lücke">
+        <Cell label={isToday ? 'Nächste Lücke' : 'Erste Lücke'}>
           <Text>{formatGap(gap, zone)}</Text>
         </Cell>
       </div>

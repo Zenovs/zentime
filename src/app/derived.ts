@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
-import { dayWindow } from '../logic/day';
+import { dayWindow, type DayOffset } from '../logic/day';
 import { nextGap, type Gap } from '../logic/gaps';
-import { computeHero, type Hero } from '../logic/hero';
+import { computeDayHero, computeHero, type Hero } from '../logic/hero';
 import { eventsForDay, focusEvent, remainingCount, type DayEvents } from '../logic/timeline';
 import type { CalendarEvent } from '../model/event';
 import { overlaps } from '../model/event';
@@ -11,16 +11,22 @@ import { selectAllEvents, useAppStore } from './store';
 export interface DayModel {
   now: number;
   zone: string;
-  today: DayEvents;
-  tomorrow: DayEvents;
+  /** Gewählter Tag im Tag-Rad, 0 = heute */
+  dayOffset: DayOffset;
+  isToday: boolean;
+  /** Termine des gewählten Tages */
+  day: DayEvents;
+  /** Termine des Folgetags; speist den Ausblick im Hero (F-12) */
+  next: DayEvents;
   hero: Hero;
   /** Termin im Detailraster */
   selected: CalendarEvent | null;
   /** Termin, zu dem die Tagesleiste scrollt */
   focus: CalendarEvent | null;
+  /** Offene Termine (heute: ab jetzt, sonst alle des Tages) */
   remaining: number;
   gap: Gap | null;
-  hasAnyToday: boolean;
+  hasAny: boolean;
 }
 
 /** Leitet alles ab, was die Tagesansicht zeigt; reine Funktionen aus `logic/` */
@@ -29,39 +35,48 @@ export function useDayModel(): DayModel {
   const settings = useAppStore((s) => s.settings);
   const runtime = useAppStore((s) => s.runtime);
   const selectedId = useAppStore((s) => s.selectedEventId);
+  const dayOffset = useAppStore((s) => s.dayOffset);
   const zone = systemZone;
 
   return useMemo(() => {
     const all = selectAllEvents({ runtime, settings });
-    const todayWindow = dayWindow(now, zone);
-    const tomorrowWindow = dayWindow(now, zone, 1);
+    const dayW = dayWindow(now, zone, dayOffset);
+    const nextW = dayWindow(now, zone, dayOffset + 1);
     const opts = { hideDeclined: settings.hideDeclined };
-    const today = eventsForDay(all, todayWindow, opts);
-    const tomorrow = eventsForDay(all, tomorrowWindow, opts);
-    const hero = computeHero({ timed: today.timed, allDay: today.allDay, tomorrowTimed: tomorrow.timed, now, zone });
-    const focus = focusEvent(today.timed, now);
+    const day = eventsForDay(all, dayW, opts);
+    const next = eventsForDay(all, nextW, opts);
+    const isToday = dayOffset === 0;
 
-    const pool = [...today.timed, ...today.allDay, ...tomorrow.timed];
+    // Nur heute kennt «läuft» und «noch»; andere Tage zeigen einen Überblick.
+    const hero = isToday
+      ? computeHero({ timed: day.timed, allDay: day.allDay, tomorrowTimed: next.timed, now, zone })
+      : computeDayHero({ timed: day.timed, allDay: day.allDay, zone });
+    const focus = isToday ? focusEvent(day.timed, now) : (day.timed[0] ?? null);
+
+    const pool = [...day.timed, ...day.allDay, ...next.timed];
     const byId = (id: string | null) => (id ? (pool.find((e) => e.id === id) ?? null) : null);
     const selected = byId(selectedId) ?? byId(hero.eventId) ?? focus;
 
-    const hasAnyToday = today.timed.length > 0;
-    const gapFrom = selected && !selected.allDay && overlaps(selected, todayWindow) ? Math.max(selected.end, now) : now;
-    const gap = hasAnyToday ? nextGap(today.timed, gapFrom, todayWindow) : null;
+    const hasAny = day.timed.length > 0;
+    const from = isToday ? now : dayW.start;
+    const gapFrom = selected && !selected.allDay && overlaps(selected, dayW) ? Math.max(selected.end, from) : from;
+    const gap = hasAny ? nextGap(day.timed, gapFrom, dayW) : null;
 
     return {
       now,
       zone,
-      today,
-      tomorrow,
+      dayOffset,
+      isToday,
+      day,
+      next,
       hero,
       selected,
       focus,
-      remaining: remainingCount(today.timed, now),
+      remaining: isToday ? remainingCount(day.timed, now) : day.timed.length,
       gap,
-      hasAnyToday,
+      hasAny,
     };
-  }, [now, settings, runtime, selectedId, zone]);
+  }, [now, settings, runtime, selectedId, dayOffset, zone]);
 }
 
 /** Zusammengefasster Zustand der Quellen für die Kopfzeile */

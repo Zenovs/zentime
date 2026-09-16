@@ -6,6 +6,8 @@
   --fg: #1e1e1e;
   --fg-muted: #8a8a8a;
   --line: #d6d6d6;
+  /* Einrasten des Tag-Rads: leichtes Überschwingen wie bei einer Mechanik */
+  --wheel-settle: 340ms cubic-bezier(0.22, 1.15, 0.3, 1);
   color-scheme: light;
 }
 
@@ -73,6 +75,15 @@ body {
   .fade {
     animation: none;
   }
+  :root {
+    --wheel-settle: 120ms ease-out;
+  }
+}
+
+/* Tag-Rad: Nachbartage laufen zu den Rändern hin aus */
+.wheel-fade {
+  mask-image: linear-gradient(to right, transparent, black 22%, black 78%, transparent);
+  -webkit-mask-image: linear-gradient(to right, transparent, black 22%, black 78%, transparent);
 }
 
 .no-scrollbar {

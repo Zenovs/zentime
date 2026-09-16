@@ -1,13 +1,15 @@
 import { useCallback } from 'react';
+import { engine } from '../app/engine';
 import { useDayModel, useSyncSummary } from '../app/derived';
 import { updateStatusText } from '../platform/updater';
 import { sourceIndex, useAppStore } from '../app/store';
 import { toggledTheme, type ResolvedTheme } from '../app/theme';
-import { dayWindow } from '../logic/day';
+import { dayTitle, dayWindow } from '../logic/day';
 import type { CalendarEvent } from '../model/event';
 import { overlaps } from '../model/event';
 import { sourceColor } from '../model/settings';
 import { AllDayRow } from './AllDayRow';
+import { DayWheel } from './DayWheel';
 import { DetailGrid } from './DetailGrid';
 import { Header } from './Header';
 import { Hero } from './Hero';
@@ -30,16 +32,19 @@ export function TodayView({ theme, compact }: TodayViewProps) {
   const togglePrivateMode = useAppStore((s) => s.togglePrivateMode);
   const updateStatus = useAppStore((s) => s.updateStatus);
 
+
   const colorFor = useCallback((ev: CalendarEvent) => sourceColor(sourceIndex(settings, ev.sourceId)), [settings]);
 
   const noSources = settings.sources.length === 0;
   const selected = model.selected;
-  const isTomorrow = !!selected && !overlaps(selected, dayWindow(model.now, model.zone));
+  const shownDay = dayWindow(model.now, model.zone, model.dayOffset);
+  const isTomorrow = !!selected && !overlaps(selected, shownDay);
 
   return (
     <>
       <Header
-        now={model.now}
+        title={dayTitle(model.dayOffset, model.now, model.zone)}
+        dateMs={shownDay.start}
         zone={model.zone}
         theme={theme}
         stale={sync.stale}
@@ -56,6 +61,8 @@ export function TodayView({ theme, compact }: TodayViewProps) {
 
       {compact ? null : (
         <>
+      <DayWheel now={model.now} zone={model.zone} offset={model.dayOffset} onChange={(offset) => engine.showDay(offset)} />
+
       {noSources ? (
         <button
           type="button"
@@ -67,7 +74,7 @@ export function TodayView({ theme, compact }: TodayViewProps) {
       ) : null}
 
       <AllDayRow
-        events={model.today.allDay}
+        events={model.day.allDay}
         colorFor={colorFor}
         privateMode={privateMode}
         selectedId={selected?.id ?? null}
@@ -75,13 +82,13 @@ export function TodayView({ theme, compact }: TodayViewProps) {
       />
 
       <Timeline
-        events={model.today.timed}
+        events={model.day.timed}
         now={model.now}
         zone={model.zone}
         colorFor={colorFor}
         selectedId={selected?.id ?? null}
         focusId={model.focus?.id ?? null}
-        hasAllDayRow={model.today.allDay.length > 0}
+        hasAllDayRow={model.day.allDay.length > 0}
         privateMode={privateMode}
         onSelect={selectEvent}
       />
@@ -94,6 +101,7 @@ export function TodayView({ theme, compact }: TodayViewProps) {
         color={selected ? colorFor(selected) : null}
         privateMode={privateMode}
         isTomorrow={isTomorrow}
+        isToday={model.isToday}
       />
         </>
       )}
