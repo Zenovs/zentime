@@ -7,7 +7,7 @@ import { APP_VERSION, isTauri, systemZone } from '../platform/env';
 import { setAlwaysOnTop, setAutostart } from '../platform/desktop';
 import { updateStatusText, type UpdateStatus } from '../platform/updater';
 import type { SourceConfig, ThemeMode } from '../model/settings';
-import { sourceColor } from '../model/settings';
+import { clampOpacity, sourceColor } from '../model/settings';
 import { Dot, IconButton, SectionLabel, Segmented, Toggle, ViewHeader } from './ui';
 
 function statusText(cfg: SourceConfig, rt: SourceRuntime | undefined, now: number): { text: string; alert: boolean } {
@@ -134,6 +134,22 @@ export function SettingsView() {
               onChange={(on) => {
                 void setAutostart(on).then((actual) => patchSettings({ autostart: actual }));
               }}
+            />
+          </div>
+          <div className="flex flex-col gap-2 py-2">
+            <div className="flex items-center justify-between gap-3">
+              <span className="text-[15px] leading-5">Deckkraft</span>
+              <span className="tnum text-[13px] leading-4 text-muted">{Math.round(settings.opacity * 100)} %</span>
+            </div>
+            <input
+              type="range"
+              min={40}
+              max={100}
+              step={5}
+              value={Math.round(settings.opacity * 100)}
+              aria-label="Deckkraft des Widgets"
+              onChange={(e) => patchSettings({ opacity: clampOpacity(Number(e.target.value) / 100) })}
+              className="h-1.5 w-full cursor-default appearance-none rounded-full bg-line accent-fg"
             />
           </div>
           <div className="flex items-center justify-between gap-3 py-2">

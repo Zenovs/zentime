@@ -30,10 +30,13 @@ trap 'rm -rf "$tmp"' EXIT
 
 echo "Suche neueste Version …"
 # Zuerst über die API (sofort nach einem Release gültig), sonst über den «latest»-Link
-url="$(curl -fsSL "$API" 2>/dev/null | grep -oE '"browser_download_url": *"[^"]+/'"$ASSET"'"' | head -n 1 | sed -E 's/.*"(https[^"]+)"/\1/')"
+url="$(curl -fsSL "$API" 2>/dev/null | grep -oE '"browser_download_url": *"[^"]+/'"$ASSET"'"' | head -n 1 | sed -E 's/.*"(https[^"]+)"/\1/' || true)"
 url="${url:-https://github.com/${REPO}/releases/latest/download/${ASSET}}"
 echo "Lade $(basename "$url") …"
-curl -fSL --progress-bar "$url" -o "$tmp/$ASSET"
+if ! curl -fSL --progress-bar "$url" -o "$tmp/$ASSET"; then
+  echo "Download fehlgeschlagen. Ist das Repository öffentlich und gibt es ein veröffentlichtes Release?" >&2
+  exit 1
+fi
 tar -xzf "$tmp/$ASSET" -C "$tmp"
 if [[ ! -d "$tmp/zentime.app" ]]; then
   echo "Das Archiv enthält keine zentime.app." >&2

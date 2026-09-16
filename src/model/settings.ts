@@ -33,6 +33,8 @@ export interface Settings {
   hideDeclined: boolean;
   /** Updates beim Start automatisch installieren (F-23) */
   autoUpdate: boolean;
+  /** Deckkraft des Widget-Hintergrunds, 0.4–1 */
+  opacity: number;
   sources: SourceConfig[];
 }
 
@@ -42,6 +44,7 @@ export const DEFAULT_SETTINGS: Settings = {
   autostart: false,
   hideDeclined: true,
   autoUpdate: true,
+  opacity: 1,
   sources: [],
 };
 
@@ -71,11 +74,17 @@ export function isSettings(v: unknown): v is Settings {
 }
 
 /** Ergänzt fehlende Felder aus älteren Versionen der Datei */
+export function clampOpacity(v: unknown): number {
+  const n = typeof v === 'number' && Number.isFinite(v) ? v : 1;
+  return Math.min(1, Math.max(0.4, n));
+}
+
 export function normalizeSettings(v: unknown): Settings {
   if (!isSettings(v)) return { ...DEFAULT_SETTINGS };
   return {
     ...DEFAULT_SETTINGS,
     ...v,
+    opacity: clampOpacity((v as Partial<Settings>).opacity),
     sources: v.sources.filter((s): s is SourceConfig => !!s && typeof s === 'object' && 'kind' in s && 'id' in s),
   };
 }

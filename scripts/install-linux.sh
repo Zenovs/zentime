@@ -35,7 +35,13 @@ if ! ldconfig -p 2>/dev/null | grep -q 'libfuse.so.2'; then
 fi
 
 echo "Suche neueste Version …"
-url="$(curl -fsSL "$API" | grep -oE '"browser_download_url": *"[^"]+_amd64\.AppImage"' | head -n 1 | sed -E 's/.*"(https[^"]+)"/\1/')"
+json="$(curl -fsSL "$API" 2>/dev/null || true)"
+if [[ -z "$json" ]]; then
+  echo "Das Release konnte nicht abgefragt werden ($API)." >&2
+  echo "Ist das Repository öffentlich und gibt es ein veröffentlichtes Release?" >&2
+  exit 1
+fi
+url="$(printf '%s' "$json" | grep -oE '"browser_download_url": *"[^"]+_amd64\.AppImage"' | head -n 1 | sed -E 's/.*"(https[^"]+)"/\1/' || true)"
 if [[ -z "$url" ]]; then
   echo "Kein AppImage im neuesten Release gefunden." >&2
   exit 1

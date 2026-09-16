@@ -126,6 +126,7 @@ export function App() {
   useShortcutsAndTray();
 
   const mode = useAppStore((s) => s.settings.theme);
+  const opacity = useAppStore((s) => s.settings.opacity);
   const loaded = useAppStore((s) => s.settingsLoaded);
   const view = useAppStore((s) => s.view);
   const theme = useResolvedTheme(mode);
@@ -139,7 +140,11 @@ export function App() {
     <div
       className="relative flex h-full w-full flex-col overflow-y-auto rounded-3xl bg-bg p-6 text-fg no-scrollbar"
       data-theme={theme}
-      style={demo.frame ? { width: 340, height: 620 } : undefined}
+      style={{
+        ...(demo.frame ? { width: 340, height: 620 } : {}),
+        // Deckkraft nur auf den Hintergrund, Text bleibt voll lesbar
+        backgroundColor: theme === 'dark' ? `rgba(38, 38, 38, ${opacity})` : `rgba(235, 235, 235, ${opacity})`,
+      }}
     >
       <ResizeHandles />
       {!loaded ? null : view.name === 'today' ? (

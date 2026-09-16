@@ -13,6 +13,7 @@ export function demoSettings(theme: Settings['theme'] = 'system'): Settings {
     autostart: false,
     hideDeclined: true,
     autoUpdate: true,
+    opacity: 1,
     sources: [
       {
         id: 'demo-ms',

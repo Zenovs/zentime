@@ -79,6 +79,7 @@ Alle Secrets bleiben lokal im Schlüsselbund. Client-ID und Tenant-ID stehen in 
 | Aktualisieren | `Cmd/Ctrl+R` oder Tray-Menü |
 | Einstellungen | Zahnrad, `Cmd/Ctrl+,` oder Tray-Menü |
 | Hell/Dunkel | Sonne/Mond-Icon; Systemfolge in den Einstellungen |
+| Deckkraft | Einstellungen → Darstellung → Regler 40–100 % (nur Hintergrund, Text bleibt deckend) |
 | Privatmodus | `Cmd/Ctrl+Shift+P` |
 | Zurück zur Tagesansicht | `Esc` |
 | Fenster schliessen | verbirgt das Widget; Beenden über das Tray-Menü |
