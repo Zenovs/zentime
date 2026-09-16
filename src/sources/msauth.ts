@@ -143,6 +143,16 @@ export function refreshTokenBody(p: MsAppConfig & { refreshToken: string }): URL
   });
 }
 
+/**
+ * Zieht den AADSTS-Code aus `error_description`. Die vollständige Beschreibung
+ * wird nie angezeigt, sie enthält Kontoname, Trace- und Korrelations-IDs; der
+ * blosse Code benennt die Ursache und verrät nichts über das Konto.
+ */
+export function aadstsCode(err: TokenError): string | null {
+  const m = /AADSTS\d+/.exec(err.error_description ?? '');
+  return m ? m[0] : null;
+}
+
 /** Fehler, bei denen nur eine neue Anmeldung hilft */
 export function requiresInteraction(err: TokenError): boolean {
   return ['invalid_grant', 'interaction_required', 'login_required', 'consent_required', 'unauthorized_client'].includes(

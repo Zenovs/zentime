@@ -1,6 +1,7 @@
 import type { GraphSourceConfig } from '../model/settings';
 import { secretKeys } from '../model/settings';
 import {
+  aadstsCode,
   accountFromIdToken,
   authorizationCodeBody,
   buildAuthorizeUrl,
@@ -137,12 +138,15 @@ export class GraphSession {
     const json = (await res.json().catch(() => ({}))) as TokenResponse | TokenError;
     if (!res.ok || !('access_token' in json)) {
       const err = json as TokenError;
+      // Nur Fehlercode und AADSTS-Nummer, nie die ganze `error_description`:
+      // die enthält Kontoname, Trace- und Korrelations-IDs.
+      const aadsts = aadstsCode(err);
+      const detail = `${err.error ?? `HTTP ${res.status}`}${aadsts ? ` (${aadsts})` : ''}`;
       if (requiresInteraction(err)) {
         await this.deps.secrets.delete(secretKeys.graphRefreshToken(this.cfg.id)).catch(() => undefined);
-        throw new AuthRequiredError();
+        throw new AuthRequiredError(`Neu anmelden: ${detail}`);
       }
-      // Nur der Fehlercode, nie `error_description`: die enthält oft Kontoname und Korrelations-IDs
-      throw new HttpError(res.status, `Anmeldedienst: ${err.error ?? `HTTP ${res.status}`}`);
+      throw new HttpError(res.status, `Anmeldedienst: ${detail}`);
     }
     if (this.revoked) {
       throw new AuthRequiredError('Quelle wurde entfernt');

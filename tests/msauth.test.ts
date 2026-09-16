@@ -1,6 +1,7 @@
 import { webcrypto } from 'node:crypto';
 import { describe, expect, it } from 'vitest';
 import {
+  aadstsCode,
   accountFromIdToken,
   authorizationCodeBody,
   buildAuthorizeUrl,
@@ -88,6 +89,16 @@ describe('Token-Anfragen', () => {
     const b = refreshTokenBody({ clientId: 'c', tenantId: 't', refreshToken: 'r' });
     expect(b.get('grant_type')).toBe('refresh_token');
     expect(b.get('refresh_token')).toBe('r');
+  });
+
+  it('aadstsCode zieht nur die Nummer aus der Beschreibung', () => {
+    expect(
+      aadstsCode({
+        error: 'invalid_request',
+        error_description: "AADSTS9002326: Cross-origin token redemption is permitted only for the 'Single-Page Application' client-type. Trace ID: abc Correlation ID: def",
+      }),
+    ).toBe('AADSTS9002326');
+    expect(aadstsCode({ error: 'invalid_request' })).toBeNull();
   });
 
   it('requiresInteraction erkennt abgelaufene Anmeldungen', () => {

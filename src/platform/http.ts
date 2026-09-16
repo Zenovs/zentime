@@ -14,7 +14,14 @@ export const httpFetch: HttpFetch = async (input, init) => {
   const withTimeout: RequestInit = { ...init, signal: init?.signal ?? AbortSignal.timeout(REQUEST_TIMEOUT_MS) };
   if (isTauri) {
     const { fetch } = await import('@tauri-apps/plugin-http');
-    return fetch(input, withTimeout);
+    // `tauri-plugin-http` setzt sonst den Origin des WebViews. Entra wertet den
+    // Token-Tausch dann als Cross-Origin-Anfrage und lehnt ihn für alles ab, was
+    // kein SPA-Client ist (AADSTS9002326). Ein leerer Origin veranlasst das
+    // Plugin, den Header ganz zu entfernen – wie es sich für eine Desktop-App
+    // gehört, die keinen Browser-Ursprung hat.
+    const headers = new Headers(withTimeout.headers);
+    headers.set('Origin', '');
+    return fetch(input, { ...withTimeout, headers });
   }
   return window.fetch(input, withTimeout);
 };

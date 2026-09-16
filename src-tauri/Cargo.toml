@@ -1,6 +1,6 @@
 [package]
 name = "zentime"
-version = "1.0.8"
+version = "1.0.9"
 description = "Kalender-Widget für Linux und macOS: wann ist heute der nächste Termin?"
 authors = ["Zeno"]
 license = "MIT"
@@ -17,7 +17,8 @@ tauri-build = { version = "2", features = [] }
 
 [dependencies]
 tauri = { version = "2", features = ["tray-icon", "image-png", "macos-private-api"] }
-tauri-plugin-http = "2"
+# `unsafe-headers` erlaubt, den Origin-Header zu entfernen (siehe src/platform/http.ts)
+tauri-plugin-http = { version = "2", features = ["unsafe-headers"] }
 tauri-plugin-store = "2"
 tauri-plugin-autostart = "2"
 tauri-plugin-opener = "2"
