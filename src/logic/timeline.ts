@@ -80,7 +80,21 @@ export function focusEvent(timed: readonly CalendarEvent[], now: number): Calend
   return timed[timed.length - 1] ?? null;
 }
 
-/** Icon-Art einer Spalte in der Tagesleiste (7.3) */
+/** Kurze Termine bleiben neben einem sehr langen sichtbar */
+export const MIN_BAR_RATIO = 0.15;
+
+/** Längste Dauer des Tages; Bezugsgrösse für die Balken der Tagesleiste */
+export function longestDuration(timed: readonly CalendarEvent[]): number {
+  return timed.reduce((max, ev) => Math.max(max, ev.end - ev.start), 0);
+}
+
+/** Anteil der Balkenbreite (0–1), bezogen auf den längsten Termin des Tages */
+export function barRatio(durationMs: number, longestMs: number): number {
+  if (!(longestMs > 0) || !(durationMs > 0)) return MIN_BAR_RATIO;
+  return Math.min(1, Math.max(MIN_BAR_RATIO, durationMs / longestMs));
+}
+
+/** Icon-Art einer Zeile in der Tagesleiste (7.3) */
 export type EventIcon = 'video' | 'pin' | 'dot';
 
 export function eventIcon(ev: CalendarEvent): EventIcon {

@@ -82,12 +82,6 @@ body {
   display: none;
 }
 
-/* Tagesleiste: Ränder weich auslaufen lassen, als Hinweis auf weitere Spalten */
-.edge-fade {
-  mask-image: linear-gradient(to right, transparent, black 24px, black calc(100% - 24px), transparent);
-  -webkit-mask-image: linear-gradient(to right, transparent, black 24px, black calc(100% - 24px), transparent);
-}
-
 /* Fokusring nur bei Tastaturbedienung */
 :focus-visible {
   outline: 2px solid var(--fg-muted);

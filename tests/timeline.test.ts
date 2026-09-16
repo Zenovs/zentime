@@ -1,11 +1,14 @@
 import { describe, expect, it } from 'vitest';
 import { dayWindow } from '../src/logic/day';
 import {
+  MIN_BAR_RATIO,
+  barRatio,
   eventIcon,
   eventStatus,
   eventsForDay,
   focusEvent,
   formatRemaining,
+  longestDuration,
   remainingCount,
   runningEvents,
 } from '../src/logic/timeline';
@@ -98,6 +101,30 @@ describe('Status und Auswahl', () => {
     expect(eventIcon(ev('X', '09:00', '10:00', { onlineUrl: 'https://meet.google.com/x' }))).toBe('video');
     expect(eventIcon(ev('X', '09:00', '10:00', { location: 'Bern' }))).toBe('pin');
     expect(eventIcon(ev('X', '09:00', '10:00', { location: '  ' }))).toBe('dot');
+  });
+});
+
+describe('Dauer-Balken', () => {
+  const timed = [ev('Kurz', '08:00', '08:15'), ev('Mittel', '09:00', '10:00'), ev('Lang', '13:00', '17:00')];
+
+  it('longestDuration nimmt den längsten Termin des Tages', () => {
+    expect(longestDuration(timed)).toBe(4 * 3600_000);
+    expect(longestDuration([])).toBe(0);
+  });
+
+  it('barRatio ist proportional zur Dauer', () => {
+    const longest = longestDuration(timed);
+    expect(barRatio(4 * 3600_000, longest)).toBe(1);
+    expect(barRatio(2 * 3600_000, longest)).toBe(0.5);
+  });
+
+  it('sehr kurze Termine behalten eine sichtbare Mindestbreite', () => {
+    expect(barRatio(60_000, 4 * 3600_000)).toBe(MIN_BAR_RATIO);
+  });
+
+  it('fängt fehlende Bezugsgrösse und Termine ohne Dauer ab', () => {
+    expect(barRatio(3600_000, 0)).toBe(MIN_BAR_RATIO);
+    expect(barRatio(0, 3600_000)).toBe(MIN_BAR_RATIO);
   });
 });
 

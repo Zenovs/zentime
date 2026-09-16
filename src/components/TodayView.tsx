@@ -78,6 +78,7 @@ export function TodayView({ theme, compact }: TodayViewProps) {
         events={model.today.timed}
         now={model.now}
         zone={model.zone}
+        colorFor={colorFor}
         selectedId={selected?.id ?? null}
         focusId={model.focus?.id ?? null}
         hasAllDayRow={model.today.allDay.length > 0}

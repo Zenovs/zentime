@@ -2,7 +2,7 @@ import { MapPin, Video } from 'lucide-react';
 import { useEffect, useRef } from 'react';
 import { formatDuration, formatTime } from '../logic/day';
 import { displayTitle } from '../logic/hero';
-import { eventIcon, eventStatus } from '../logic/timeline';
+import { barRatio, eventIcon, eventStatus, longestDuration } from '../logic/timeline';
 import type { CalendarEvent } from '../model/event';
 import { cx } from './ui';
 
@@ -10,6 +10,7 @@ interface TimelineProps {
   events: readonly CalendarEvent[];
   now: number;
   zone: string;
+  colorFor: (ev: CalendarEvent) => string;
   selectedId: string | null;
   focusId: string | null;
   hasAllDayRow: boolean;
@@ -17,43 +18,33 @@ interface TimelineProps {
   onSelect: (id: string) => void;
 }
 
-function ColumnIcon({ ev }: { ev: CalendarEvent }) {
+/** Nur Video und Ort bekommen ein Symbol; sonst trägt der Balken die Farbe */
+function RowIcon({ ev }: { ev: CalendarEvent }) {
   const kind = eventIcon(ev);
-  if (kind === 'video') return <Video size={20} strokeWidth={1.5} aria-hidden />;
-  if (kind === 'pin') return <MapPin size={20} strokeWidth={1.5} aria-hidden />;
-  return (
-    <span className="flex h-5 w-5 items-center justify-center" aria-hidden>
-      <span className="h-1.5 w-1.5 rounded-full bg-current" />
-    </span>
-  );
+  if (kind === 'video') return <Video size={16} strokeWidth={1.5} className="flex-none text-muted" aria-hidden />;
+  if (kind === 'pin') return <MapPin size={16} strokeWidth={1.5} className="flex-none text-muted" aria-hidden />;
+  return null;
 }
 
-/** Eine Spalte pro Termin, horizontal scrollbar (7.3) */
-export function Timeline({ events, now, zone, selectedId, focusId, hasAllDayRow, privateMode, onSelect }: TimelineProps) {
+/** Ein Termin pro Zeile, Balken proportional zur Dauer (7.3) */
+export function Timeline({ events, now, zone, colorFor, selectedId, focusId, hasAllDayRow, privateMode, onSelect }: TimelineProps) {
   const scroller = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const el = scroller.current;
     if (!el || !focusId) return;
-    const target = el.querySelector<HTMLElement>(`[data-event-id="${CSS.escape(focusId)}"]`);
-    if (!target) return;
-    const padding = 24;
-    el.scrollTo({ left: Math.max(0, target.offsetLeft - padding), behavior: 'auto' });
+    el.querySelector<HTMLElement>(`[data-event-id="${CSS.escape(focusId)}"]`)?.scrollIntoView({ block: 'nearest' });
   }, [focusId, events.length]);
 
   if (events.length === 0) return null;
+  const longest = longestDuration(events);
 
   return (
     <div
       ref={scroller}
       role="list"
       aria-label="Termine heute"
-      onWheel={(e) => {
-        if (Math.abs(e.deltaY) > Math.abs(e.deltaX) && scroller.current) {
-          scroller.current.scrollLeft += e.deltaY;
-        }
-      }}
-      className={cx('edge-fade -mx-6 mb-6 flex gap-2 overflow-x-auto px-6 no-scrollbar', hasAllDayRow ? 'mt-3' : 'mt-6')}
+      className={cx('-mx-2 mb-6 flex min-h-0 flex-1 flex-col overflow-y-auto px-2 no-scrollbar', hasAllDayRow ? 'mt-3' : 'mt-6')}
     >
       {events.map((ev) => {
         const status = eventStatus(ev, now);
@@ -72,18 +63,27 @@ export function Timeline({ events, now, zone, selectedId, focusId, hasAllDayRow,
             title={privateMode ? undefined : displayTitle(ev)}
             onClick={() => onSelect(ev.id)}
             className={cx(
-              'flex w-[60px] flex-none flex-col items-center gap-2 rounded-xl py-3 transition-colors',
+              'flex w-full flex-none items-center gap-3 rounded-xl px-2 py-2 text-left transition-colors',
               (selected || running) && 'bg-line',
               !selected && !running && 'hover:bg-line/60',
               status === 'past' && 'opacity-40',
               status !== 'past' && tentative && 'opacity-60',
             )}
           >
-            <span className={cx('tnum text-[13px] leading-4', running ? 'text-fg' : 'text-muted')}>{formatTime(ev.start, zone)}</span>
-            <span className="text-fg">
-              <ColumnIcon ev={ev} />
+            <span className={cx('tnum flex-none text-[13px] leading-4', running ? 'text-fg' : 'text-muted')}>
+              {formatTime(ev.start, zone)}
             </span>
-            <span className="tnum text-sm leading-5 font-semibold whitespace-nowrap">{formatDuration(ev.end - ev.start)}</span>
+            <span className="h-1.5 w-9 flex-none overflow-hidden rounded-full bg-fg/15" aria-hidden>
+              <span
+                className="block h-full rounded-full"
+                style={{ width: `${barRatio(ev.end - ev.start, longest) * 100}%`, backgroundColor: colorFor(ev) }}
+              />
+            </span>
+            <RowIcon ev={ev} />
+            <span className="min-w-0 flex-1 truncate text-[15px] leading-5 font-semibold">
+              {privateMode ? 'Termin' : displayTitle(ev)}
+            </span>
+            <span className="tnum flex-none text-[13px] leading-4 text-muted">{formatDuration(ev.end - ev.start)}</span>
           </button>
         );
       })}
