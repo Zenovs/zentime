@@ -63,14 +63,15 @@ export function Timeline({ events, now, zone, colorFor, selectedId, focusId, has
             title={privateMode ? undefined : displayTitle(ev)}
             onClick={() => onSelect(ev.id)}
             className={cx(
-              'flex w-full flex-none items-center gap-3 rounded-xl px-2 py-2 text-left transition-colors',
-              (selected || running) && 'bg-line',
-              !selected && !running && 'hover:bg-line/60',
+              // zentime zeigt nur an: keine Hover- oder Auswahlflächen, der
+              // laufende und der ausgewählte Termin werden über die Schrift
+              // hervorgehoben.
+              'flex w-full flex-none items-center gap-3 px-2 py-2 text-left',
               status === 'past' && 'opacity-40',
               status !== 'past' && tentative && 'opacity-60',
             )}
           >
-            <span className={cx('tnum flex-none text-[13px] leading-4', running ? 'text-fg' : 'text-muted')}>
+            <span className={cx('tnum flex-none text-[13px] leading-4', running || selected ? 'text-fg' : 'text-muted')}>
               {formatTime(ev.start, zone)}
             </span>
             <span className="h-1.5 w-9 flex-none overflow-hidden rounded-full bg-fg/15" aria-hidden>
@@ -83,7 +84,9 @@ export function Timeline({ events, now, zone, colorFor, selectedId, focusId, has
             <span className="min-w-0 flex-1 truncate text-[15px] leading-5 font-semibold">
               {privateMode ? 'Termin' : displayTitle(ev)}
             </span>
-            <span className="tnum flex-none text-[13px] leading-4 text-muted">{formatDuration(ev.end - ev.start)}</span>
+            <span className={cx('tnum flex-none text-[13px] leading-4', running || selected ? 'text-fg' : 'text-muted')}>
+              {formatDuration(ev.end - ev.start)}
+            </span>
           </button>
         );
       })}

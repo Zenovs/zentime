@@ -21,7 +21,9 @@ export function IconButton({ icon: Icon, label, size = 20, muted = true, classNa
       aria-label={label}
       title={label}
       className={cx(
-        'flex h-8 w-8 items-center justify-center rounded-lg transition-colors hover:bg-line',
+        // Keine gefüllte Fläche beim Überfahren: zentime zeigt an, das Icon
+        // wechselt dafür die Farbe.
+        'flex h-8 w-8 items-center justify-center rounded-lg transition-colors',
         muted ? 'text-muted hover:text-fg' : 'text-fg',
         className,
       )}
