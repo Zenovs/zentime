@@ -1,0 +1,54 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "zentime",
+  "version": "../package.json",
+  "identifier": "io.github.zenovs.zentime",
+  "build": {
+    "beforeDevCommand": "pnpm dev",
+    "devUrl": "http://localhost:1420",
+    "beforeBuildCommand": "pnpm build",
+    "frontendDist": "../dist"
+  },
+  "app": {
+    "macOSPrivateApi": true,
+    "withGlobalTauri": false,
+    "windows": [
+      {
+        "label": "main",
+        "title": "zentime",
+        "width": 340,
+        "height": 620,
+        "minWidth": 300,
+        "minHeight": 480,
+        "decorations": false,
+        "transparent": true,
+        "shadow": true,
+        "resizable": true,
+        "alwaysOnTop": false,
+        "skipTaskbar": true,
+        "visible": false
+      }
+    ],
+    "security": {
+      "csp": "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self' data:; connect-src 'self' ipc: http://ipc.localhost"
+    }
+  },
+  "bundle": {
+    "active": true,
+    "createUpdaterArtifacts": false,
+    "targets": ["app", "dmg", "appimage", "deb"],
+    "icon": ["icons/32x32.png", "icons/128x128.png", "icons/128x128@2x.png", "icons/icon.icns", "icons/icon.ico"],
+    "category": "Productivity",
+    "shortDescription": "Kalender-Widget: wann ist heute der nächste Termin?",
+    "longDescription": "zentime zeigt auf einen Blick, wann heute der nächste Termin ist. Es führt Termine aus Microsoft 365 und ICS-Kalendern (Google, Planbar) zusammen und läuft komplett lokal.",
+    "macOS": {
+      "minimumSystemVersion": "13.0"
+    },
+    "linux": {
+      "appimage": {
+        "bundleMediaFramework": false
+      }
+    }
+  },
+  "plugins": {}
+}
