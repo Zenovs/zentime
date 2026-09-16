@@ -3,14 +3,31 @@ import { useState } from 'react';
 import { engine } from '../app/engine';
 import { useAppStore } from '../app/store';
 import { newSourceId, secretKeys, type GraphSourceConfig, type IcsSourceConfig } from '../model/settings';
-import { describeError } from '../platform/log';
+import { describeError, log } from '../platform/log';
 import { isTauri } from '../platform/env';
 import { secrets } from '../platform/secrets';
 import { Button, Field, IconButton, Segmented, ViewHeader } from './ui';
 
 type Kind = 'graph' | 'ics';
 
-const GUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+const GUID = /[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/i;
+const TENANT_ALIAS = new Set(['common', 'organizations', 'consumers']);
+const DOMAIN = /^[a-z0-9](?:[a-z0-9-]*[a-z0-9])?(?:\.[a-z0-9](?:[a-z0-9-]*[a-z0-9])?)+$/i;
+
+/** Nimmt auch eingefügten Text wie «Anwendungs-ID (Client): 1234…» an */
+export function extractGuid(input: string): string | null {
+  const m = GUID.exec(input);
+  return m ? m[0].toLowerCase() : null;
+}
+
+/** Tenant als GUID, Domäne (firma.onmicrosoft.com) oder Alias (organizations) */
+export function normalizeTenant(input: string): string | null {
+  const guid = extractGuid(input);
+  if (guid) return guid;
+  const t = input.trim().toLowerCase();
+  if (TENANT_ALIAS.has(t) || DOMAIN.test(t)) return t;
+  return null;
+}
 
 export function AddSourceView({ initialKind }: { initialKind?: Kind | undefined }) {
   const setView = useAppStore((s) => s.setView);
@@ -29,13 +46,19 @@ export function AddSourceView({ initialKind }: { initialKind?: Kind | undefined 
 
   async function addGraph() {
     setError(null);
-    if (!GUID.test(clientId.trim()) || !GUID.test(tenantId.trim())) {
-      setError('Client-ID und Tenant-ID müssen GUIDs sein (8-4-4-4-12).');
+    const client = extractGuid(clientId);
+    const tenant = normalizeTenant(tenantId);
+    if (!client) {
+      setError('Client-ID: keine GUID gefunden. Sie steht in Entra ID unter «Anwendungs-ID (Client)».');
+      return;
+    }
+    if (!tenant) {
+      setError('Tenant-ID: GUID oder Domäne eingeben, z. B. firma.onmicrosoft.com.');
       return;
     }
     setBusy(true);
     const id = newSourceId();
-    const draft = { id, clientId: clientId.trim(), tenantId: tenantId.trim() };
+    const draft = { id, clientId: client, tenantId: tenant };
     try {
       const { account, calendars } = await engine.loginGraph(draft);
       const cfg: GraphSourceConfig = {
@@ -53,6 +76,7 @@ export function AddSourceView({ initialKind }: { initialKind?: Kind | undefined 
     } catch (e) {
       // Kein halb eingerichtetes Konto zurücklassen: Token aus dem Schlüsselbund entfernen
       await engine.discardGraphDraft(draft).catch(() => undefined);
+      log.warn(`Quelle hinzufügen (Microsoft): ${describeError(e)}`);
       setError(describeError(e));
     } finally {
       setBusy(false);
@@ -107,7 +131,7 @@ export function AddSourceView({ initialKind }: { initialKind?: Kind | undefined 
         >
           <Field label="Anzeigename" value={name} onChange={setName} placeholder="Arbeit" />
           <Field label="Client-ID" value={clientId} onChange={setClientId} placeholder="00000000-0000-0000-0000-000000000000" />
-          <Field label="Tenant-ID" value={tenantId} onChange={setTenantId} placeholder="00000000-0000-0000-0000-000000000000" />
+          <Field label="Tenant-ID" value={tenantId} onChange={setTenantId} placeholder="GUID oder firma.onmicrosoft.com" />
           <p className="text-[13px] leading-[18px] text-muted">
             Beide Werte stammen aus der App-Registrierung in Entra ID (docs/setup-microsoft.md). Ein Client-Secret ist nicht nötig;
             der Login öffnet den Systembrowser.

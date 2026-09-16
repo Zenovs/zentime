@@ -4,8 +4,6 @@ import {
   accountFromIdToken,
   authorizationCodeBody,
   buildAuthorizeUrl,
-  codeChallenge,
-  codeVerifier,
   parseRedirect,
   refreshTokenBody,
   requiresInteraction,
@@ -15,7 +13,7 @@ import {
 } from '../sources/msauth';
 import { HttpError, httpFetch, retryAfterMs, type HttpFetch } from './http';
 import { describeError, log } from './log';
-import { startLoopback } from './oauthLoopback';
+import { pkcePair, startLoopback } from './oauthLoopback';
 import { secrets, type SecretStore } from './secrets';
 import { openExternal } from './shell';
 
@@ -58,17 +56,11 @@ export class GraphSession {
 
   /** Interaktive Anmeldung im Systembrowser (Pflichtenheft 5.1, Login-Schritte 1–4) */
   async login(loginHint?: string): Promise<{ account: string | null }> {
+    log.info(`graph ${this.cfg.id}: Anmeldung gestartet`);
     const server = await startLoopback();
     try {
       this.revoked = false;
-      const random = new Uint8Array(32);
-      crypto.getRandomValues(random);
-      const verifier = codeVerifier(random);
-      const challenge = await codeChallenge(verifier, crypto.subtle);
-      const stateBytes = new Uint8Array(16);
-      crypto.getRandomValues(stateBytes);
-      const state = Array.from(stateBytes, (b) => b.toString(16).padStart(2, '0')).join('');
-
+      const { verifier, challenge, state } = await pkcePair();
       const url = buildAuthorizeUrl({
         clientId: this.cfg.clientId,
         tenantId: this.cfg.tenantId,
@@ -78,8 +70,10 @@ export class GraphSession {
         ...(loginHint ? { loginHint } : {}),
       });
       await openExternal(url);
+      log.info(`graph ${this.cfg.id}: Browser geöffnet, warte auf Redirect (Port ${server.port})`);
 
       const redirect = await server.waitForRedirect(LOGIN_TIMEOUT_MS);
+      log.info(`graph ${this.cfg.id}: Redirect erhalten`);
       const parsed = parseRedirect(redirect, state);
       if (!parsed.ok) throw new Error(loginErrorText(parsed.error));
 
@@ -95,6 +89,9 @@ export class GraphSession {
       if (!token.refresh_token) throw new Error('Kein Refresh-Token erhalten (fehlt `offline_access`?)');
       log.info(`graph ${this.cfg.id}: Anmeldung erfolgreich`);
       return { account: accountFromIdToken(token.id_token) };
+    } catch (e) {
+      log.warn(`graph ${this.cfg.id}: Anmeldung fehlgeschlagen: ${describeError(e)}`);
+      throw e;
     } finally {
       await server.cancel().catch(() => undefined);
     }

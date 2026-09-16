@@ -6361,12 +6361,15 @@ dependencies = [
 name = "zentime"
 version = "1.0.3"
 dependencies = [
+ "base64 0.22.1",
  "keyring",
  "log",
  "objc2",
  "objc2-app-kit",
+ "rand 0.8.8",
  "serde",
  "serde_json",
+ "sha2",
  "tauri",
  "tauri-build",
  "tauri-plugin-autostart",

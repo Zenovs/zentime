@@ -56,6 +56,7 @@ pub fn run() {
             secrets::secret_get,
             secrets::secret_set,
             secrets::secret_delete,
+            oauth::oauth_pkce,
             oauth::oauth_start,
             oauth::oauth_wait,
             oauth::oauth_cancel,

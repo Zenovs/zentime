@@ -5,6 +5,11 @@
 //! liefert die vollständige Redirect-URL an das Frontend. Der Code wird hier
 //! nicht interpretiert und nicht geloggt.
 
+use base64::engine::general_purpose::URL_SAFE_NO_PAD;
+use base64::Engine;
+use rand::RngCore;
+use serde::Serialize;
+use sha2::{Digest, Sha256};
 use std::collections::HashMap;
 use std::io::{ErrorKind, Read, Write};
 use std::net::{TcpListener, TcpStream};
@@ -28,6 +33,35 @@ const SUCCESS_HTML: &str = r#"<!doctype html>
 @media (prefers-color-scheme:dark){body{background:#262626;color:#F2F2F2}} p{color:#8A8A8A;max-width:32em;text-align:center}</style></head>
 <body><div><h1 style="font-size:20px;font-weight:600;text-align:center">Anmeldung abgeschlossen</h1>
 <p>Du kannst dieses Fenster schliessen und zu zentime zurückkehren.</p></div></body></html>"#;
+
+#[derive(Serialize)]
+pub struct PkcePair {
+    verifier: String,
+    challenge: String,
+    state: String,
+}
+
+/// PKCE-Verifier, S256-Challenge und `state` (RFC 7636). Läuft in Rust, weil
+/// `crypto.subtle` nicht in jedem WebView-Kontext verfügbar ist.
+#[tauri::command]
+pub fn oauth_pkce() -> PkcePair {
+    let mut rng = rand::thread_rng();
+    let mut bytes = [0u8; 32];
+    rng.fill_bytes(&mut bytes);
+    let verifier = URL_SAFE_NO_PAD.encode(bytes);
+    let challenge = URL_SAFE_NO_PAD.encode(Sha256::digest(verifier.as_bytes()));
+    let mut state_bytes = [0u8; 16];
+    rng.fill_bytes(&mut state_bytes);
+    PkcePair {
+        verifier,
+        challenge,
+        state: hex(&state_bytes),
+    }
+}
+
+fn hex(bytes: &[u8]) -> String {
+    bytes.iter().map(|b| format!("{b:02x}")).collect()
+}
 
 #[tauri::command]
 pub fn oauth_start(state: tauri::State<'_, OauthState>) -> Result<u16, String> {
@@ -160,6 +194,19 @@ fn handle_connection(mut stream: TcpStream, port: u16) -> Option<String> {
 #[cfg(test)]
 mod tests {
     use super::is_oauth_redirect;
+
+    #[test]
+    fn pkce_entspricht_rfc_7636() {
+        use base64::engine::general_purpose::URL_SAFE_NO_PAD;
+        use base64::Engine;
+        use sha2::{Digest, Sha256};
+        let verifier = "dBjftJeZ4CVP-mB92K27uhbUJU1p1r_wW1gFWFOEjXk";
+        let challenge = URL_SAFE_NO_PAD.encode(Sha256::digest(verifier.as_bytes()));
+        assert_eq!(challenge, "E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM");
+        let pair = super::oauth_pkce();
+        assert_eq!(pair.verifier.len(), 43);
+        assert_eq!(pair.state.len(), 32);
+    }
 
     #[test]
     fn erkennt_redirects() {

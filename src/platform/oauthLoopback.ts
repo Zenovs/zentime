@@ -1,3 +1,4 @@
+import { codeChallenge, codeVerifier } from '../sources/msauth';
 import { isTauri } from './env';
 
 /**
@@ -25,4 +26,25 @@ export async function startLoopback(): Promise<LoopbackServer> {
     waitForRedirect: (timeoutMs) => invoke<string>('oauth_wait', { port, timeoutMs }),
     cancel: () => invoke('oauth_cancel', { port }),
   };
+}
+
+export interface PkcePair {
+  verifier: string;
+  challenge: string;
+  state: string;
+}
+
+/** PKCE-Werte: in der Desktop-App aus Rust, im Browser über WebCrypto */
+export async function pkcePair(): Promise<PkcePair> {
+  if (isTauri) {
+    const { invoke } = await import('@tauri-apps/api/core');
+    return invoke<PkcePair>('oauth_pkce');
+  }
+  const random = new Uint8Array(32);
+  crypto.getRandomValues(random);
+  const verifier = codeVerifier(random);
+  const challenge = await codeChallenge(verifier, crypto.subtle);
+  const stateBytes = new Uint8Array(16);
+  crypto.getRandomValues(stateBytes);
+  return { verifier, challenge, state: Array.from(stateBytes, (b) => b.toString(16).padStart(2, '0')).join('') };
 }
