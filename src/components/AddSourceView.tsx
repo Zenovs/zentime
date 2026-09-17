@@ -196,8 +196,10 @@ export function AddSourceView({ initialKind }: { initialKind?: Kind | undefined 
             inputMode="url"
           />
           <p className="text-[13px] leading-[18px] text-muted">
-            Google Kalender → Einstellungen → «Kalender integrieren» → «Geheime Adresse im iCal-Format». Auch Planbar und andere
-            ICS-Feeds funktionieren. Die Adresse wird wie ein Passwort behandelt und nur im Schlüsselbund gespeichert.
+            Bei einem öffentlichen Google-Kalender genügt der Link aus «Teilen» («calendar.google.com/…?cid=…»), zentime macht
+            daraus den Feed. Sonst: Google Kalender → Einstellungen → «Kalender integrieren» → «Geheime Adresse im iCal-Format».
+            Auch Planbar und andere ICS-Feeds funktionieren. Die Adresse wird wie ein Passwort behandelt und nur im
+            Schlüsselbund gespeichert.
           </p>
           {error ? <p className="text-[13px] leading-[18px] text-fg">{error}</p> : null}
           <Button type="submit" busy={busy} disabled={url.trim().length === 0}>

@@ -47,6 +47,35 @@ export function retryAfterMs(res: Response, nowMs = Date.now()): number | null {
   return Number.isNaN(date) ? null : Math.max(0, date - nowMs);
 }
 
+/** Kalender-Kennung aus einem Google-Link: entweder im Klartext oder base64 */
+function googleCalendarId(raw: string): string | null {
+  const value = decodeURIComponent(raw.trim());
+  if (value.includes('@')) return value;
+  try {
+    const b64 = value.replace(/-/g, '+').replace(/_/g, '/');
+    const decoded = atob(b64 + '='.repeat((4 - (b64.length % 4)) % 4));
+    return decoded.includes('@') ? decoded : null;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Google-Kalender werden als Abo-Link weitergegeben
+ * («calendar.google.com/calendar/u/0?cid=…»), und den hat man zur Hand. Ein
+ * Feed ist das nicht; daraus wird die öffentliche iCal-Adresse gebaut. Für
+ * nicht öffentliche Kalender führt weiterhin nur die geheime Adresse aus den
+ * Kalendereinstellungen zum Ziel.
+ */
+export function googleIcsUrl(u: URL): string | null {
+  if (!/(^|\.)calendar\.google\.com$/i.test(u.hostname)) return null;
+  if (u.pathname.includes('/ical/')) return null;
+  const raw = u.searchParams.get('cid') ?? u.searchParams.get('src');
+  const id = raw ? googleCalendarId(raw) : null;
+  if (!id) return null;
+  return `https://calendar.google.com/calendar/ical/${encodeURIComponent(id)}/public/basic.ics`;
+}
+
 export function isAllowedIcsUrl(raw: string): { ok: true; url: string } | { ok: false; reason: string } {
   const trimmed = raw.trim().replace(/^webcal:\/\//i, 'https://');
   let u: URL;
@@ -56,5 +85,5 @@ export function isAllowedIcsUrl(raw: string): { ok: true; url: string } | { ok: 
     return { ok: false, reason: 'Keine gültige Adresse' };
   }
   if (u.protocol !== 'https:') return { ok: false, reason: 'Nur https-Adressen werden unterstützt' };
-  return { ok: true, url: u.toString() };
+  return { ok: true, url: googleIcsUrl(u) ?? u.toString() };
 }

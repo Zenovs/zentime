@@ -266,7 +266,16 @@ export class SyncEngine {
     const check = isAllowedIcsUrl(rawUrl);
     if (!check.ok) throw new Error(check.reason);
     const res = await this.deps.http(check.url, { headers: { Accept: 'text/calendar' } });
-    if (!res.ok) throw new HttpError(res.status, `Server antwortete mit ${res.status}`);
+    if (!res.ok) {
+      // Aus einem Abo-Link lässt sich nur der öffentliche Feed bilden
+      if (check.url.includes('/calendar/ical/') && (res.status === 404 || res.status === 403)) {
+        throw new HttpError(
+          res.status,
+          'Dieser Google-Kalender ist nicht öffentlich. In den Kalendereinstellungen unter «Kalender integrieren» die «Geheime Adresse im iCal-Format» kopieren und hier einfügen.',
+        );
+      }
+      throw new HttpError(res.status, `Server antwortete mit ${res.status}`);
+    }
     const text = await res.text();
     if (!/BEGIN:VCALENDAR/i.test(text)) throw new Error('Die Adresse liefert keinen Kalender');
     const events = parseIcs(text, fetchWindow(this.deps.now(), this.deps.zone, this.store.dayRange), {

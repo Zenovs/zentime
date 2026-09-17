@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { resolveTheme, toggledTheme } from '../src/app/theme';
 import { formatGap, onlineLabel } from '../src/components/DetailGrid';
 import { DEFAULT_SETTINGS, normalizeSettings, sourceColor } from '../src/model/settings';
-import { isAllowedIcsUrl, retryAfterMs } from '../src/platform/http';
+import { googleIcsUrl, isAllowedIcsUrl, retryAfterMs } from '../src/platform/http';
 import { ZONE, at } from './helpers';
 
 describe('HTTP-Hilfen', () => {
@@ -12,6 +12,32 @@ describe('HTTP-Hilfen', () => {
     const date = new Date(now + 90_000).toUTCString();
     expect(retryAfterMs(new Response(null, { headers: { 'Retry-After': date } }), now)).toBe(90_000);
     expect(retryAfterMs(new Response(null), now)).toBeNull();
+  });
+
+  it('macht aus einem Google-Abo-Link die Feed-Adresse', () => {
+    // «dario.zenhaeusern@bluewin.ch» als base64, so gibt Google den Link aus
+    const share = 'https://calendar.google.com/calendar/u/0?cid=ZGFyaW8uemVuaGFldXNlcm5AYmx1ZXdpbi5jaA';
+    expect(isAllowedIcsUrl(share)).toEqual({
+      ok: true,
+      url: 'https://calendar.google.com/calendar/ical/dario.zenhaeusern%40bluewin.ch/public/basic.ics',
+    });
+  });
+
+  it('nimmt die Kennung auch im Klartext und aus «src»', () => {
+    expect(googleIcsUrl(new URL('https://calendar.google.com/calendar/embed?src=team%40gruppe.calendar.google.com'))).toBe(
+      'https://calendar.google.com/calendar/ical/team%40gruppe.calendar.google.com/public/basic.ics',
+    );
+  });
+
+  it('lässt eine fertige Feed-Adresse unangetastet', () => {
+    const feed = 'https://calendar.google.com/calendar/ical/x%40y.ch/private-abc/basic.ics';
+    expect(googleIcsUrl(new URL(feed))).toBeNull();
+    expect(isAllowedIcsUrl(feed)).toEqual({ ok: true, url: feed });
+  });
+
+  it('fasst fremde Adressen nicht an', () => {
+    expect(googleIcsUrl(new URL('https://example.com/calendar/u/0?cid=abc'))).toBeNull();
+    expect(googleIcsUrl(new URL('https://calendar.google.com/calendar/u/0'))).toBeNull();
   });
 
   it('isAllowedIcsUrl erlaubt nur https und schreibt webcal um', () => {
