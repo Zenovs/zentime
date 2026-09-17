@@ -1,7 +1,7 @@
 {
   "name": "zentime",
   "private": true,
-  "version": "1.0.10",
+  "version": "1.0.11",
   "description": "Kalender-Widget für Linux und macOS: zeigt auf einen Blick, wann heute der nächste Termin ist.",
   "license": "MIT",
   "type": "module",
